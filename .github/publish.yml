@@ -1,0 +1,58 @@
+# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
+# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+
+name: publish
+
+on: push
+
+jobs:
+  test:
+    name: 🧪 Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - name: 👍 Checkout
+        uses: actions/checkout@v3
+        
+      - name: ❇️ Setup node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          
+      - name: 📥 Install Dependencies
+        run: npm install
+
+      - name: 🧑‍🔬 Tests
+        run: npm run test
+
+  publish:
+    name: 🚀 Publish
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: 👍 Checkout
+        uses: actions/checkout@v3
+        
+      - name: ❇️ Setup node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          registry-url: 'https://registry.npmjs.org'
+ 
+      - name: 📥 Install Dependencies
+        run: npm install
+    
+      - name: 🛠️ Build
+        run: npm run build
+        
+      - name: 🚀 Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
