@@ -1,0 +1,44 @@
+{
+  "name": "@coremarine/nmea-parser",
+  "version": "1.0.0",
+  "description": "Library to parse NMEA 0183 sentences",
+  "author": "CoreMarine",
+  "license": "ISC",
+  "homepage": "https://github.com/core-marine-dev/nmea-parser#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/core-marine-dev/nmea-parser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/core-marine-dev/nmea-parser/issues"
+  },
+  "keywords": [
+    "nmea",
+    "nmea0183",
+    "0183",
+    "gps",
+    "gnss"
+  ],
+  "main": "lib/index.js",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "start": "node lib/index.js",
+    "dev": "ts-node-dev src/index.ts",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "lint": "ts-standard",
+    "lint-fix": "ts-standard --fix",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "ts-node-dev": "^2.0.0",
+    "ts-standard": "^12.0.2",
+    "typescript": "^5.2.2",
+    "vitest": "^0.34.6"
+  }
+}
