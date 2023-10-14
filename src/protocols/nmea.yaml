@@ -1,0 +1,4 @@
+protocols:
+  - name: nmea
+    version: 4.4.3
+    standard: true

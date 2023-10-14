@@ -1,0 +1,111 @@
+protocols:
+  - name: NORSUB8
+    standard: false
+    sentences:
+      - sentence: PNORSUB8
+        description: 
+        fields:
+          - name: time
+            type: uint32
+            units: us
+          - name: delay
+            type: uint32
+            units: us
+          - name: roll
+            type: double
+            units: deg
+          - name: pitch
+            type: double
+            units: deg
+          - name: heading
+            type: double
+            units: deg
+            note: From 0 to 360
+          - name: surge
+            type: double
+            units: m
+          - name: sway
+            type: double
+            units: m
+          - name: heave
+            type: double
+            units: m
+            note: z-down
+          - name: roll_rate
+            type: double
+            units: deg/s
+          - name: pitch_rate
+            type: double
+            units: deg/s
+          - name: yaw_rate
+            type: double
+            units: deg/s
+          - name: surge_velocity
+            type: double
+            units: m/s
+          - name: sway_velocity
+            type: double
+            units: m/s
+          - name: heave_velocity
+            type: double
+            units: m/s
+            note: z-down
+          - name: acceleration_x
+            type: double
+            units: m/s2
+          - name: acceleration_y
+            type: double
+            units: m/s2
+          - name: acceleration_z
+            type: double
+            units: m/s2
+          - name: period_x
+            type: double
+            units: s
+          - name: period_y
+            type: double
+            units: s
+          - name: period_z
+            type: double
+            units: s
+          - name: amplitude_x
+            type: double
+            units: m
+          - name: amplitude_y
+            type: double
+            units: m
+          - name: amplitude_z
+            type: double
+            units: m
+          - name: status
+            type: uint32
+            units: 
+
+  - name: GYROCOMPAS1
+    standard: false
+    sentences:
+      - sentence: HEHDT
+        fields:
+          - name: heading
+            type: float
+            units: deg
+          - name: symbol
+            type: string
+      - sentence: PHTRO
+        fields:
+          - name: pitch
+            type: float
+            units: deg
+          - name: pitch_direction
+            type: string
+            note: M bow up, P bow down
+          - name: roll
+            type: float
+            units: deg
+          - name: roll_direction
+            type: string
+            note: M bow up, P bow down
+      - sentence: PHINF
+        fields:
+          - name: status
+            type: string
