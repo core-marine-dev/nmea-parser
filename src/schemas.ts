@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, MINIMAL_LENGTH, SEPARATOR, START_FLAG } from './constants'
 import { stringChecksumToNumber, getChecksum } from './checksum'
-import zodToJsonSchema from 'zod-to-json-schema'
 
 export const StringSchema = z.string()
 export const StringArraySchema = z.array(StringSchema)
@@ -143,4 +142,5 @@ export const ProtocolSchema = z.object({
 })
 
 export const ProtocolsFileSchema = z.object({ protocols: z.array(ProtocolSchema) })
-export const jsonSchema = zodToJsonSchema(ProtocolsFileSchema, 'NMEAProtocolsSchema')
+
+
