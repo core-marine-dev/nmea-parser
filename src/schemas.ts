@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, MINIMAL_LENGTH, SEPARATOR, START_FLAG } from './constants'
 import { stringChecksumToNumber, getChecksum } from './checksum'
+import zodToJsonSchema from 'zod-to-json-schema'
 
 export const StringSchema = z.string()
 export const StringArraySchema = z.array(StringSchema)
@@ -76,7 +77,7 @@ export const NMEALineSchema = StringSchema.superRefine((line, ctx) => {
   }
 }).transform(line => {
   const frame = line.slice(START_FLAG.length, - END_FLAG.length)
-  const [data, cs ] = frame.split(DELIMITER)
+  const [data, cs] = frame.split(DELIMITER)
   const checksum = stringChecksumToNumber(cs)
   const [emitter, ...fields] = data.split(SEPARATOR)
   return NMEASentenceSchema.parse({ frame, emitter, fields, checksum })
@@ -90,13 +91,13 @@ export const FieldTypeSchema = z.union([
 
   z.literal('unsigned short'), z.literal('uint16'),
   z.literal('short'), z.literal('int16'),
-  
+
   z.literal('unsigned int'), z.literal('uint32'),
   z.literal('int'), z.literal('int32'),
-  
+
   z.literal('unsigned long'), z.literal('uint64'),
   z.literal('long'), z.literal('int64'),
-  
+
   z.literal('float'), z.literal('float32'),
   z.literal('double'), z.literal('float64'),
 
@@ -115,39 +116,31 @@ export const FieldSchema = z.object({
   note: StringSchema.optional()
 })
 
-export const SentenceSchema = z.object({
-  sentence: StringSchema,
+export const IDSchema = StringSchema.or(
+  z.object({
+    emitter: StringSchema,
+    sentence: StringSchema
+  })
+)
+
+export const ProtocolSentenceSchema = z.object({
+  id: IDSchema,
+  fields: z.array(FieldSchema),
   description: StringSchema.optional(),
-  fields: z.array(FieldSchema)
 })
 
 export const VersionSchema = z.custom<`${number}.${number}.${number}`>(val => {
-  const parsed = StringSchema.safeParse(val)
-  if (!parsed.success) return false
-  const fields = parsed.data.split('.')
-  if (fields.length !== 3) return false
-  return fields.every(field => !isNaN(field))
-}).or(
-  z.custom<`${number}.${number}`>(val => {
-    const parsed = StringSchema.safeParse(val)
-    if (!parsed.success) return false
-    const fields = parsed.data.split('.')
-    if (fields.length !== 2) return false
-    return fields.every(field => !isNaN(field))
-  })
-).or(
-  z.custom<`${number}`>(val => {
-    const parsed = StringSchema.safeParse(val)
-    if (!parsed.success) return false
-    return !isNaN(parsed.data)
-  })
-)
+  const fields = z.string().parse(val).split('.')
+  if (fields.length > 3) return false
+  return fields.every( field => NaturalSchema.safeParse(parseInt(field)).success)
+})
 
 export const ProtocolSchema = z.object({
   name: StringSchema,
   version: VersionSchema.optional(),
   standard: BooleanSchema.default(false),
-  sentences: z.array(SentenceSchema)
+  sentences: z.array(ProtocolSentenceSchema)
 })
 
 export const ProtocolsFileSchema = z.object({ protocols: z.array(ProtocolSchema) })
+export const jsonSchema = zodToJsonSchema(ProtocolsFileSchema, 'NMEAProtocolsSchema')
