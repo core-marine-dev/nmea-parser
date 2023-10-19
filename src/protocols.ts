@@ -1,17 +1,22 @@
-import { writeFileSync, readFileSync }  from 'node:fs'
-import path from 'node:path'
+import fs  from 'node:fs'
+import Path from 'node:path'
 import zodToJsonSchema from 'zod-to-json-schema'
-import { ProtocolsFileSchema } from './schemas'
-
+import yaml from 'js-yaml'
+import { JSONSchemaInputSchema, ProtocolsFileSchema, StringSchema } from './schemas'
+import { JSONSchemaInput, ProtocolsFile } from './types'
 
 export const jsonSchema = zodToJsonSchema(ProtocolsFileSchema, 'NMEAProtocolsSchema')
 
-export const createJSONSchema = () => {
-  const FILE = path.join(__dirname, 'nmea_protocols_schema.json')
+export const createJSONSchema = (input: JSONSchemaInput) => {
+  const { path, filename } = JSONSchemaInputSchema.parse(input)
+  const FILE = Path.join(path, filename)
   const CONTENT = JSON.stringify(jsonSchema, null, 2)
-  writeFileSync(FILE, CONTENT)
+  fs.writeFileSync(FILE, CONTENT)
 }
 
-export const readYamlFile = (file: string) => {
-  
+export const readProtocolsFile = (file: string): ProtocolsFile => {
+  const filename = StringSchema.parse(file)
+  const content = fs.readFileSync(filename, 'utf-8')
+  const fileData = yaml.load(content)
+  return ProtocolsFileSchema.parse(fileData)
 }

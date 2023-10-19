@@ -135,7 +135,7 @@ export const VersionSchema = z.custom<`${number}.${number}.${number}`>(val => {
 })
 
 export const ProtocolSchema = z.object({
-  name: StringSchema,
+  protocol: StringSchema,
   version: VersionSchema.optional(),
   standard: BooleanSchema.default(false),
   sentences: z.array(ProtocolSentenceSchema)
@@ -143,4 +143,7 @@ export const ProtocolSchema = z.object({
 
 export const ProtocolsFileSchema = z.object({ protocols: z.array(ProtocolSchema) })
 
-
+export const JSONSchemaInputSchema = z.object({
+  path: StringSchema.default(__dirname),
+  filename: StringSchema.default('nmea_protocols_schema.json')
+})

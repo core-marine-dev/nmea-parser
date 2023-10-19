@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { NMEALineSchema, NMEASentenceSchema, ProtocolSchema, ProtocolsFileSchema, ProtocolSentenceSchema, FieldTypeSchema, FieldSchema, IDSchema, VersionSchema } from './schemas'
+import { NMEALineSchema, NMEASentenceSchema, ProtocolSchema, ProtocolsFileSchema, ProtocolSentenceSchema, FieldTypeSchema, FieldSchema, IDSchema, VersionSchema, JSONSchemaInputSchema } from './schemas'
 
 // NMEA
 export type NMEASentence = z.infer<typeof NMEASentenceSchema>
@@ -31,3 +31,5 @@ export type Version = z.infer<typeof VersionSchema>
 export type Protocol = z.infer<typeof ProtocolSchema>
 
 export type ProtocolsFile = z.infer<typeof ProtocolsFileSchema>
+
+export type JSONSchemaInput = z.infer<typeof JSONSchemaInputSchema>
