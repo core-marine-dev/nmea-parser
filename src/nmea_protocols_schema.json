@@ -1,0 +1,126 @@
+{
+  "$ref": "#/definitions/NMEAProtocolsSchema",
+  "definitions": {
+    "NMEAProtocolsSchema": {
+      "type": "object",
+      "properties": {
+        "protocols": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "version": {},
+              "standard": {
+                "type": "boolean",
+                "default": false
+              },
+              "sentences": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/definitions/NMEAProtocolsSchema/properties/protocols/items/properties/name"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "emitter": {
+                              "$ref": "#/definitions/NMEAProtocolsSchema/properties/protocols/items/properties/name"
+                            },
+                            "sentence": {
+                              "$ref": "#/definitions/NMEAProtocolsSchema/properties/protocols/items/properties/name"
+                            }
+                          },
+                          "required": [
+                            "emitter",
+                            "sentence"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "$ref": "#/definitions/NMEAProtocolsSchema/properties/protocols/items/properties/name"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "char",
+                              "uint8",
+                              "signed char",
+                              "int8",
+                              "unsigned short",
+                              "uint16",
+                              "short",
+                              "int16",
+                              "unsigned int",
+                              "uint32",
+                              "int",
+                              "int32",
+                              "unsigned long",
+                              "uint64",
+                              "long",
+                              "int64",
+                              "float",
+                              "float32",
+                              "double",
+                              "float64",
+                              "number",
+                              "string",
+                              "bool",
+                              "boolean"
+                            ]
+                          },
+                          "units": {
+                            "$ref": "#/definitions/NMEAProtocolsSchema/properties/protocols/items/properties/name"
+                          },
+                          "note": {
+                            "$ref": "#/definitions/NMEAProtocolsSchema/properties/protocols/items/properties/name"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "type"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "description": {
+                      "$ref": "#/definitions/NMEAProtocolsSchema/properties/protocols/items/properties/name"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "fields"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "name",
+              "sentences"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "protocols"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
