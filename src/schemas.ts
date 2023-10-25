@@ -115,15 +115,8 @@ export const FieldSchema = z.object({
   note: StringSchema.optional()
 })
 
-export const IDSchema = StringSchema.or(
-  z.object({
-    emitter: StringSchema,
-    sentence: StringSchema
-  })
-)
-
 export const ProtocolSentenceSchema = z.object({
-  id: IDSchema,
+  sentence: StringSchema,
   fields: z.array(FieldSchema),
   description: StringSchema.optional(),
 })
@@ -131,7 +124,7 @@ export const ProtocolSentenceSchema = z.object({
 export const VersionSchema = z.custom<`${number}.${number}.${number}`>(val => {
   const fields = z.string().parse(val).split('.')
   if (fields.length > 3) return false
-  return fields.every( field => NaturalSchema.safeParse(parseInt(field)).success)
+  return fields.every(field => NaturalSchema.safeParse(parseInt(field)).success)
 })
 
 export const ProtocolSchema = z.object({
@@ -147,3 +140,16 @@ export const JSONSchemaInputSchema = z.object({
   path: StringSchema.default(__dirname),
   filename: StringSchema.default('nmea_protocols_schema.json')
 })
+
+export const StoredSentenceSchema = z.object({
+  sentence: StringSchema,
+  protocol: z.object({
+    name: StringSchema,
+    standard: BooleanSchema,
+    version: VersionSchema.optional(),
+  }),
+  fields: z.array(FieldSchema),
+  description: StringSchema.optional()
+})
+
+export const StoredSentencesSchema = z.map(StringSchema, StoredSentenceSchema)

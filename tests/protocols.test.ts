@@ -1,7 +1,7 @@
 import path from 'node:path'
-import { test, expect } from 'vitest'
-import { Protocol } from '../src/types'
-import { readProtocolsFile } from '../src/protocols' 
+import { describe, test, expect } from 'vitest'
+import { Protocol, StoredSentence } from '../src/types'
+import { getStoreSentences, readProtocolsFile } from '../src/protocols' 
 
 const PROTOCOLS_FILE = path.join(__dirname, 'norsub.yaml')
 const EXPECTED_PROTOCOLS: Protocol[] = [
@@ -10,7 +10,7 @@ const EXPECTED_PROTOCOLS: Protocol[] = [
     standard: false,
     sentences: [
       {
-        id: 'PNORSUB8',
+        sentence: 'PNORSUB8',
         description: 'The whole regular attitude information from the MRU',
         fields: [
           {
@@ -135,8 +135,7 @@ const EXPECTED_PROTOCOLS: Protocol[] = [
             name: 'status',
             type: 'uint32'
           }
-        ]
-
+        ],
       }
     ]
   },
@@ -144,22 +143,78 @@ const EXPECTED_PROTOCOLS: Protocol[] = [
     protocol: 'GYROCOMPAS1',
     standard: false,
     sentences: [
-      { id: 'HEHDT', fields: [
+      { sentence: 'HEHDT', fields: [
         { name: 'heading', type: 'float', units: 'deg' },
         { name: 'symbol', type: 'string' },
       ] },
-      { id: 'PHTRO', fields: [
+      { sentence: 'PHTRO', fields: [
         { name: 'pitch', type: 'float', units: 'deg' },
         { name: 'pitch_direction', type: 'string', note: 'M bow up, P bow down' },
         { name: 'roll', type: 'float', units: 'deg' },
         { name: 'roll_direction', type: 'string', note: 'M bow up, P bow down' },
       ] },
-      { id: 'PHINF', fields: [ { name: 'status', type: 'string' } ] },
+      { sentence: 'PHINF', fields: [ { name: 'status', type: 'string' } ] },
     ]
   }
 ]
+const EXPECTED_STORED_SENTECES: Record<string, StoredSentence> = {
+  'PNORSUB8': {
+    sentence: EXPECTED_PROTOCOLS[0].sentences[0].sentence,
+    protocol: {
+      name: EXPECTED_PROTOCOLS[0].protocol,
+      standard: EXPECTED_PROTOCOLS[0].standard,
+      version: EXPECTED_PROTOCOLS[0]?.version,
+    },
+    fields: EXPECTED_PROTOCOLS[0].sentences[0].fields,
+    description: EXPECTED_PROTOCOLS[0].sentences[0]?.description
+  },
+  'HEHDT': {
+    sentence: EXPECTED_PROTOCOLS[1].sentences[0].sentence,
+    protocol: {
+      name: EXPECTED_PROTOCOLS[1].protocol,
+      standard: EXPECTED_PROTOCOLS[1].standard,
+      version: EXPECTED_PROTOCOLS[1]?.version,
+    },
+    fields: EXPECTED_PROTOCOLS[1].sentences[0].fields,
+    description: EXPECTED_PROTOCOLS[1].sentences[0]?.description
+  },
+  'PHTRO': {
+    sentence: EXPECTED_PROTOCOLS[1].sentences[1].sentence,
+    protocol: {
+      name: EXPECTED_PROTOCOLS[1].protocol,
+      standard: EXPECTED_PROTOCOLS[1].standard,
+      version: EXPECTED_PROTOCOLS[1]?.version,
+    },
+    fields: EXPECTED_PROTOCOLS[1].sentences[1].fields,
+    description: EXPECTED_PROTOCOLS[1].sentences[1]?.description
+  },
+  'PHINF': {
+    sentence: EXPECTED_PROTOCOLS[1].sentences[2].sentence,
+    protocol: {
+      name: EXPECTED_PROTOCOLS[1].protocol,
+      standard: EXPECTED_PROTOCOLS[1].standard,
+      version: EXPECTED_PROTOCOLS[1]?.version,
+    },
+    fields: EXPECTED_PROTOCOLS[1].sentences[2].fields,
+    description: EXPECTED_PROTOCOLS[1].sentences[2]?.description
+  },
+}
 
-test('Right protocols file', () => {
-  const { protocols } = readProtocolsFile(PROTOCOLS_FILE)
-  expect(protocols).toStrictEqual(EXPECTED_PROTOCOLS)
+describe('Protocols Files', () => {
+
+  test('Right protocols file', () => {
+    const { protocols } = readProtocolsFile(PROTOCOLS_FILE)
+    expect(protocols).toStrictEqual(EXPECTED_PROTOCOLS)
+  })
+})
+
+describe('Protocols File to StoredSentences', () => {
+  test('Happy path', () => {
+    const { protocols } = readProtocolsFile(PROTOCOLS_FILE)
+    const sentences = getStoreSentences({ protocols })
+    sentences.forEach((value, key) => {
+      const expected = EXPECTED_STORED_SENTECES[key]
+      expect(value).toEqual(expected)
+    })
+  })
 })

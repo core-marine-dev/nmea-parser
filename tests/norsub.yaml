@@ -2,7 +2,7 @@ protocols:
   - protocol: NORSUB8
     standard: false
     sentences:
-      - id: PNORSUB8
+      - sentence: PNORSUB8
         description: The whole regular attitude information from the MRU
         fields:
           - name: time
@@ -83,14 +83,14 @@ protocols:
   - protocol: GYROCOMPAS1
     standard: false
     sentences:
-      - id: HEHDT
+      - sentence: HEHDT
         fields:
           - name: heading
             type: float
             units: deg
           - name: symbol
             type: string
-      - id: PHTRO
+      - sentence: PHTRO
         fields:
           - name: pitch
             type: float
@@ -104,7 +104,7 @@ protocols:
           - name: roll_direction
             type: string
             note: M bow up, P bow down
-      - id: PHINF
+      - sentence: PHINF
         fields:
           - name: status
             type: string
