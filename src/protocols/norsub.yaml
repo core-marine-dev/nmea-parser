@@ -1,9 +1,9 @@
 protocols:
-  - name: NORSUB8
+  - protocol: NORSUB8
     standard: false
     sentences:
       - sentence: PNORSUB8
-        description: 
+        description: The whole regular attitude information from the MRU
         fields:
           - name: time
             type: uint32
@@ -79,9 +79,8 @@ protocols:
             units: m
           - name: status
             type: uint32
-            units: 
 
-  - name: GYROCOMPAS1
+  - protocol: GYROCOMPAS1
     standard: false
     sentences:
       - sentence: HEHDT
