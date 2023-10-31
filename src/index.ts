@@ -1,1 +1,3 @@
-console.log("Hello via nmea!");
+import { Parser } from './parser'
+
+export default Parser
