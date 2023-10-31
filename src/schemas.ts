@@ -7,81 +7,6 @@ export const StringArraySchema = z.array(StringSchema)
 export const BooleanSchema = z.boolean()
 export const NumberSchema = z.number()
 export const NaturalSchema = NumberSchema.int().positive()
-
-
-// NMEA
-export const NMEASentenceSchema = z.object({
-  frame: StringSchema,
-  emitter: StringSchema,
-  fields: z.array(StringSchema),
-  checksum: NumberSchema,
-})
-
-export const NMEALineSchema = StringSchema.superRefine((line, ctx) => {
-  if (line.length < MINIMAL_LENGTH) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Invalid NMEA line -> it doesn\'t contain any data'
-    })
-    return
-  }
-  // Check Start FLAG
-  if (!StringSchema.startsWith(START_FLAG).safeParse(line).success) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Invalid NMEA line -> it doesn\'t start with $'
-    })
-    return
-  }
-  // Check End Flag
-  if (!StringSchema.endsWith(END_FLAG).safeParse(line).success) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Invalid NMEA line -> it doesn\'t end with CRLF'
-    })
-    return
-  }
-  const frame = line.slice(1, - END_FLAG.length).split(DELIMITER)
-  // Check Delimiter
-  if (frame.length !== 2) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: `Invalid NMEA line -> it doesn't contain just one DELIMITER ${DELIMITER}`
-    })
-    return
-  }
-  // Check Checksum length
-  const [data, checksum] = frame
-  if (checksum.length !== CHECKSUM_LENGTH) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: `Invalid NMEA line -> checksum has not just two characters => CHECKSUM = ${checksum}`
-    })
-    return
-  }
-  const dataChecksumNumber = getChecksum(data)
-  const checksumNumber = stringChecksumToNumber(checksum)
-  if (dataChecksumNumber !== checksumNumber) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: `Invalid NMEA line -> calculated checksum ${dataChecksumNumber} != frame checksum ${checksumNumber}`
-    })
-    return
-  }
-  if (data.indexOf(SEPARATOR) === -1) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: `Invalid NMEA line -> does not include any field (no ${SEPARATOR} in the frame)`
-    })
-  }
-}).transform(line => {
-  const frame = line.slice(START_FLAG.length, - END_FLAG.length)
-  const [data, cs] = frame.split(DELIMITER)
-  const checksum = stringChecksumToNumber(cs)
-  const [emitter, ...fields] = data.split(SEPARATOR)
-  return NMEASentenceSchema.parse({ frame, emitter, fields, checksum })
-})
-
 // PROTOCOLS
 export const FieldTypeSchema = z.union([
   // Numbers
@@ -136,11 +61,6 @@ export const ProtocolSchema = z.object({
 
 export const ProtocolsFileSchema = z.object({ protocols: z.array(ProtocolSchema) })
 
-export const JSONSchemaInputSchema = z.object({
-  path: StringSchema.default(__dirname),
-  filename: StringSchema.default('nmea_protocols_schema.json')
-})
-
 export const StoredSentenceSchema = z.object({
   sentence: StringSchema,
   protocol: z.object({
@@ -153,3 +73,82 @@ export const StoredSentenceSchema = z.object({
 })
 
 export const StoredSentencesSchema = z.map(StringSchema, StoredSentenceSchema)
+
+export const JSONSchemaInputSchema = z.object({
+  path: StringSchema.default(__dirname),
+  filename: StringSchema.default('nmea_protocols_schema.json')
+})
+
+// SENTENCES
+export const NMEALikeSchema = StringSchema
+  .startsWith(START_FLAG)
+  .includes(SEPARATOR)
+  .includes(DELIMITER)
+  .endsWith(END_FLAG)
+
+export const NMEAUnparsedSentenceSchema = NMEALikeSchema
+  .superRefine((line, ctx) => {
+    if (line.length < MINIMAL_LENGTH) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Invalid NMEA line -> it doesn\'t contain any data'
+      })
+      return
+    }
+
+    const frame = line.slice(1, - END_FLAG.length).split(DELIMITER)
+    // Check Delimiter
+    if (frame.length !== 2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Invalid NMEA line -> it doesn't contain just one DELIMITER ${DELIMITER}`
+      })
+      return
+    }
+    // Check Checksum length
+    const [data, checksum] = frame
+    if (checksum.length !== CHECKSUM_LENGTH) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Invalid NMEA line -> checksum has not just two characters => CHECKSUM = ${checksum}`
+      })
+      return
+    }
+    const dataChecksumNumber = getChecksum(data)
+    const checksumNumber = stringChecksumToNumber(checksum)
+    if (dataChecksumNumber !== checksumNumber) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Invalid NMEA line -> calculated checksum ${dataChecksumNumber} != frame checksum ${checksumNumber}`
+      })
+    }
+  })
+  .transform(str => {
+    const raw = str
+    const [data, cs] = raw.slice(1, -END_FLAG.length).split(DELIMITER)
+    const checksum = stringChecksumToNumber(cs)
+    const [sentence, ...fields] = data.split(SEPARATOR)
+    return { raw, sentence, checksum, fields }
+  })
+
+export const NMEAPreParsedSentenceSchema = z.object({
+  timestamp: NaturalSchema,
+  raw: NMEALikeSchema,
+  sentence: StringSchema,
+  checksum: NumberSchema,
+  fields: z.array(StringSchema),
+})
+
+export const DataSchema = z.union([StringSchema, NumberSchema, BooleanSchema]).nullish()
+
+export const FieldParsedSchema = FieldSchema.and(z.object({
+  data: DataSchema
+}))
+
+export const NMEASentenceSchema = z.intersection(
+  NMEAPreParsedSentenceSchema,
+  z.object({
+    fields: z.array(FieldParsedSchema),
+    data: z.array(DataSchema)
+  })
+)

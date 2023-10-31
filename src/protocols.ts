@@ -21,7 +21,7 @@ export const readProtocolsFile = (file: string): ProtocolsFile => {
   return ProtocolsFileSchema.parse(fileData)
 }
 
-export const getStoreSentencesFromProtocol = (protocol: Protocol) => {
+const getStoreSentencesFromProtocol = (protocol: Protocol) => {
   const { protocol: name, standard, version, sentences } = protocol
   const storedSentences: StoredSentences = new Map()
   sentences.forEach(element => {
