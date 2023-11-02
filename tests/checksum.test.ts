@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest"
+import { test, expect } from "vitest"
 import { CHECKSUM_LENGTH, DELIMITER, END_FLAG} from '../src/constants'
 import { getChecksum, numberChecksumToString, stringChecksumToNumber } from '../src/checksum'
 
