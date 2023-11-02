@@ -6,7 +6,10 @@ export const StringSchema = z.string()
 export const StringArraySchema = z.array(StringSchema)
 export const BooleanSchema = z.boolean()
 export const NumberSchema = z.number()
-export const NaturalSchema = NumberSchema.int().positive()
+export const IntegerSchema = NumberSchema.int()
+export const NaturalSchema = IntegerSchema.positive()
+export const BigIntegerSchema = z.bigint()
+export const BigNaturalSchema = BigIntegerSchema.positive()
 // PROTOCOLS
 export const FieldTypeSchema = z.union([
   // Numbers
