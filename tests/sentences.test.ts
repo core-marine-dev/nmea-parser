@@ -32,7 +32,7 @@ describe('getNumberValue', () => {
   const MAX_UINT64 = BigInt(0b11111111_11111111_11111111_11111111_11111111_11111111_11111111_11111111)
   const UINT64_LIMITS = BigUint64Array.from([MIN_UINT64, MAX_UINT64])
 
-  const MIN_INT64 = BigInt(0b1000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000)
+  const MIN_INT64 = BigInt(0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000)
   const MAX_INT64 = BigInt(0b01111111_11111111_11111111_11111111_11111111_11111111_11111111_11111111)
   const INT64_LIMITS =  BigInt64Array.from([MIN_INT64, MAX_INT64])
 
@@ -64,12 +64,13 @@ describe('getNumberValue', () => {
     })
   })
 
-  test.todo('uint64', () => {
+  test('uint64', () => {
     ['uint64', 'unsigned long'].forEach(type => {
       const value = getNumberValue(type as FieldType)
-      const bigValue = BigInt(value as number)
-      const bigExpected = NaturalSchema.min(Number(UINT64_LIMITS[0])).max(Number(UINT64_LIMITS[1])).parse(bigValue)
-      const expected = Number(bigExpected)
+      // const bigValue = BigInt(value as number)
+      // const bigExpected = NaturalSchema.min(Number(UINT64_LIMITS[0])).max(Number(UINT64_LIMITS[1])).parse(bigValue)
+      // const expected = Number(bigExpected)
+      const expected = NaturalSchema.parse(value)
       expect(value).toBe(expected)
     })
   })
@@ -98,12 +99,31 @@ describe('getNumberValue', () => {
     })
   })
 
-  test.todo('int64', () => {
+  test('int64', () => {
     ['int64', 'long'].forEach(type => {
       const value = getNumberValue(type as FieldType)
-      const expected = NumberSchema.min(Number(INT64_LIMITS[0])).max(Number(INT64_LIMITS[1])).parse(value)
+      // const bigValue = BigInt(value as number)
+      // const bigExpected = IntegerSchema.min(Number(INT64_LIMITS[0])).max(Number(INT64_LIMITS[1])).parse(bigValue)
+      // const expected = Number(bigExpected)
+      const expected = IntegerSchema.parse(value)
       expect(value).toBe(expected)
     })
 
+  })
+
+  test('float32', () => {
+    ['float32', 'float'].forEach(type => {
+      const value = getNumberValue(type as FieldType)
+      const expected = IntegerSchema.safeParse(value).success
+      expect(expected).toBeFalsy()
+    })
+  })
+
+  test('float64', () => {
+    ['float64', 'double'].forEach(type => {
+      const value = getNumberValue(type as FieldType)
+      const expected = IntegerSchema.safeParse(value).success
+      expect(expected).toBeFalsy()
+    })
   })
 })

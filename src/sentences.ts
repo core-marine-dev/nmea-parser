@@ -4,6 +4,8 @@ import { Data, FieldType, NMEALike, StoredSentence } from "./types";
 
 export const getNumberValue = (type: FieldType): Data => {
   const seed = Math.random() * Math.pow(10, 10)
+  const float32Seed = Math.random() * (Math.pow(2, 23) / 10)
+  const float64Seed = Math.random() * (Number.MAX_SAFE_INTEGER - 1)
   switch (type) {
     case 'uint8':
     case 'char':
@@ -39,11 +41,11 @@ export const getNumberValue = (type: FieldType): Data => {
 
     case 'float32':
     case 'float':
-      return (new Float32Array([seed]))[0]
+      return (new Float32Array([float32Seed]))[0]
 
     case 'float64':
     case 'double':
-      return (new Float64Array([seed]))[0]
+        return (new Float64Array([float64Seed]))[0]
   }
   throw Error('invalid type')
 }
