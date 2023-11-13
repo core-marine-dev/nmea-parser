@@ -5,7 +5,7 @@ import { Data, FieldType, NMEALike, StoredSentence } from "./types";
 export const getNumberValue = (type: FieldType): Data => {
   const seed = Math.random() * Math.pow(10, 10)
   const float32Seed = Math.random() * (Math.pow(2, 23) / 10)
-  const float64Seed = Math.random() * (Number.MAX_SAFE_INTEGER - 1)
+  const float64Seed = Math.random() * (Number.MAX_SAFE_INTEGER / 10)
   switch (type) {
     case 'uint8':
     case 'char':

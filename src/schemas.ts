@@ -8,6 +8,19 @@ export const BooleanSchema = z.boolean()
 export const NumberSchema = z.number()
 export const IntegerSchema = NumberSchema.int()
 export const NaturalSchema = IntegerSchema.positive()
+
+export const Uint8Schema = NaturalSchema.max(0b1111_1111)
+export const Uint16Schema = NaturalSchema.max(0b1111_1111_1111_1111)
+export const Uint32Schema = NaturalSchema.max(0b1111_1111_1111_1111_1111_1111_1111_1111)
+// export const Uint64Schema = NaturalSchema.max(0b11111111_11111111_11111111_11111111_11111111_11111111_11111111_11111111)
+const [int8min, int8max] = Int8Array.from([0b1000_0000, 0b0111_1111])
+export const Int8Schema =  IntegerSchema.min(int8min).max(int8max)
+const [int16min, int16max] = Int16Array.from([0b1000_0000_0000_0000, 0b0111_1111_1111_1111])
+export const Int16Schema = IntegerSchema.min(int16min).max(int16max)
+const [int32min, int32max] = Int32Array.from([0b1000_0000_0000_0000_0000_0000_0000_0000, 0b0111_1111_1111_1111_1111_1111_1111_1111])
+export const Int32Schema = IntegerSchema.min(int32min).max(int32max)
+// export const Int64Schema = IntegerSchema.min(0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000).max(0b01111111_11111111_11111111_11111111_11111111_11111111_11111111_11111111)
+
 export const BigIntegerSchema = z.bigint()
 export const BigNaturalSchema = BigIntegerSchema.positive()
 // PROTOCOLS
@@ -22,8 +35,8 @@ export const FieldTypeSchema = z.union([
   z.literal('unsigned int'), z.literal('uint32'),
   z.literal('int'), z.literal('int32'),
 
-  z.literal('unsigned long'), z.literal('uint64'),
-  z.literal('long'), z.literal('int64'),
+  // z.literal('unsigned long'), z.literal('uint64'),
+  // z.literal('long'), z.literal('int64'),
 
   z.literal('float'), z.literal('float32'),
   z.literal('double'), z.literal('float64'),
