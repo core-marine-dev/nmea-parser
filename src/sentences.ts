@@ -31,16 +31,17 @@ export const getNumberValue = (type: FieldType): Data => {
     case 'int':
       return (new Int32Array([seed]))[0]
 
-    case 'uint64':
-    case 'unsigned long':
-      return Number((new BigUint64Array([BigInt(Math.floor(seed))]))[0])
+    // case 'uint64':
+    // case 'unsigned long':
+    //   return Number((new BigUint64Array([BigInt(Math.floor(seed))]))[0])
         
-    case 'int64':
-    case 'long':
-      return Number((new BigInt64Array([BigInt(Math.floor(seed))]))[0])
+    // case 'int64':
+    // case 'long':
+    //   return Number((new BigInt64Array([BigInt(Math.floor(seed))]))[0])
 
     case 'float32':
     case 'float':
+    case 'number':
       return (new Float32Array([float32Seed]))[0]
 
     case 'float64':
