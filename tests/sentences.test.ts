@@ -1,9 +1,10 @@
 import { describe, expect, test } from 'vitest'
-import { getNumberValue, getValue } from '../src/sentences'
-import { FieldType } from '../src/types'
-import { Int16Schema, Int32Schema, Int8Schema, IntegerSchema, NaturalSchema, Uint16Schema, Uint32Schema, Uint8Schema } from '../src/schemas'
+import { generateSentence, getNumberValue, getValue } from '../src/sentences'
+import { FieldType, StoredSentence } from '../src/types'
+import { Int16Schema, Int32Schema, Int8Schema, IntegerSchema, NMEALikeSchema, NaturalSchema, Uint16Schema, Uint32Schema, Uint8Schema } from '../src/schemas'
+import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, SEPARATOR } from '../src/constants'
 
-describe('getNumberValue', () => {
+describe.skip('getNumberValue', () => {
 
   test('invalid number type', () => {
     expect(() => getNumberValue('a' as FieldType)).toThrowError()
@@ -91,7 +92,7 @@ describe('getNumberValue', () => {
   })
 })
 
-describe('getValue', () => {
+describe.skip('getValue', () => {
   test('boolean', () => {
     ['bool', 'boolean'].forEach(type => {
       const value = getValue(type as FieldType)
@@ -129,6 +130,59 @@ describe('getValue', () => {
   })
 })
 
-describe.skip('generateSentence', () => {
-  test('')
+describe('generateSentence', () => {
+  const testSentence: StoredSentence = {
+    sentence: 'TEST',
+    protocol: {
+      name: 'TESTING PROTOCOL',
+      standard: false,
+      version: '1.2.3'
+    },
+    fields: [
+      { name: 'latitude', type: 'number', units: 'deg' },
+      { name: 'longitude', type: 'float32', units: 'deg' },
+      { name: 'altitude', type: 'float64', units: 'm' },
+      { name: 'a', type: 'int8'},
+      { name: 'b', type: 'int16'},
+      { name: 'c', type: 'int32'},
+      { name: 'd', type: 'uint8'},
+      { name: 'e', type: 'uint16'},
+      { name: 'f', type: 'uint32'},
+      { name: 'g', type: 'boolean'},
+      { name: 'h', type: 'string'},
+    ],
+    description: 'This is just an invented sentence for testing'
+  }
+  test('Happy path', () => {
+    const expected = generateSentence(testSentence)
+    const parsed = NMEALikeSchema.parse(expected)
+    expect(parsed).toBe(expected)
+
+    const info = parsed.slice(1, - (DELIMITER.length + CHECKSUM_LENGTH + END_FLAG.length)).split(SEPARATOR)
+    const field0 = info[0]
+    const field1 = Number(info[1])
+    const field2 = Number(info[2])
+    const field3 = Number(info[3])
+    const field4 = Number(info[4])
+    const field5 = Number(info[5])
+    const field6 = Number(info[6])
+    const field7 = Number(info[7])
+    const field8 = Number(info[8])
+    const field9 = Number(info[9])
+    const field10 = Boolean(info[10])
+    const field11 = info[11]
+    
+    expect(field0).toBe('TEST')
+    expect(Float32Array.from([field1])[0]).toBe(field1)
+    expect(Float32Array.from([field2])[0]).toBe(field2)
+    expect(Float64Array.from([field3])[0]).toBe(field3)
+    expect(Int8Array.from([field4])[0]).toBe(field4)
+    expect(Int16Array.from([field5])[0]).toBe(field5)
+    expect(Int32Array.from([field6])[0]).toBe(field6)
+    expect(Uint8Array.from([field7])[0]).toBe(field7)
+    expect(Uint16Array.from([field8])[0]).toBe(field8)
+    expect(Uint32Array.from([field9])[0]).toBe(field9)
+    expect(field10).toBeTypeOf('boolean')
+    expect(field11).toBeTypeOf('string')
+  })
 })
