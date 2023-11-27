@@ -55,13 +55,14 @@ export const getUnknownSentence = (sentence: NMEAPreParsed): NMEAUknownSentence 
 
 // TESTING - GENERATE
 export const getNumberValue = (type: FieldType): Data => {
-  const seed = Math.random() * Math.pow(10, 10)
-  const float32Seed = Math.random() * (Math.pow(2, 23) / 10)
-  const float64Seed = Math.random() * (Number.MAX_SAFE_INTEGER / 10)
+  const sign = ((Math.random() < 0.5) ? -1: 1)
+  const useed = Math.random() * (Number.MAX_SAFE_INTEGER - Number.MIN_SAFE_INTEGER) + Number.MIN_SAFE_INTEGER
+  const seed = useed * sign
+  const fseed = Math.random() * sign
   switch (type) {
     case 'uint8':
     case 'char':
-      return (new Uint8Array([seed]))[0]
+      return (new Uint8Array([useed]))[0]
 
     case 'int8':
     case 'signed char':
@@ -69,7 +70,7 @@ export const getNumberValue = (type: FieldType): Data => {
 
     case 'uint16':
     case 'unsigned short':
-      return (new Uint16Array([seed]))[0]
+      return (new Uint16Array([useed]))[0]
 
     case 'int16':
     case 'short':
@@ -77,7 +78,7 @@ export const getNumberValue = (type: FieldType): Data => {
 
     case 'uint32':
     case 'unsigned int':
-      return (new Uint32Array([seed]))[0]
+      return (new Uint32Array([useed]))[0]
 
     case 'int32':
     case 'int':
@@ -93,12 +94,12 @@ export const getNumberValue = (type: FieldType): Data => {
 
     case 'float32':
     case 'float':
-      return (new Float32Array([float32Seed]))[0] + 0.01
+      return (new Float32Array([fseed]))[0]
       
-    case 'number':
     case 'float64':
     case 'double':
-        return (new Float64Array([float64Seed]))[0] + 0.01
+    case 'number':
+      return (new Float64Array([fseed]))[0]
   }
   throw Error('invalid type')
 }

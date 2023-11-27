@@ -77,17 +77,18 @@ describe('getNumberValue', () => {
   test('float32', () => {
     ['float32', 'float'].forEach(type => {
       const value = getNumberValue(type as FieldType)
-      const expected = IntegerSchema.safeParse(value).success
-      expect(expected).toBeFalsy()
+      const expected = IntegerSchema.safeParse(value)
+      if (expected.success) { console.log(`Value = ${value} | Parsed = ${expected.data}`)}
+      expect(expected.success).toBeFalsy()
     })
   })
 
   test('float64', () => {
     ['float64', 'double'].forEach(type => {
       const value = getNumberValue(type as FieldType)
-      const expected = IntegerSchema.safeParse(value).success
-      if (!expected) { console.log(`Value -> ${value}`)}
-      expect(expected).toBeFalsy()
+      const expected = IntegerSchema.safeParse(value)
+      if (expected.success) { console.log(`Value = ${value} | Parsed = ${expected.data}`)}
+      expect(expected.success).toBeFalsy()
     })
   })
 })
@@ -105,24 +106,26 @@ describe('getValue', () => {
     expect(typeof value === 'string').toBeTruthy()
   })
 
-  test('numbers', () => {
+  test('numbers -> unsigned integers', () => {
     ['uint8', 'uint16', 'uint32'].forEach(type => {
       const value = getNumberValue(type as FieldType)
       const expected = NaturalSchema.parse(value)
       expect(value).toBe(expected)
     });
-
+  })
+  test('numbers -> integers', () => {
     ['int8', 'int16', 'int32'].forEach(type => {
       const value = getNumberValue(type as FieldType)
       const expected = IntegerSchema.parse(value)
       expect(value).toBe(expected)
     });
-
+  })
+  test('numbers -> floats', () => {
     ['float32', 'float64'].forEach(type => {
       const value = getNumberValue(type as FieldType)
-      const expected = IntegerSchema.safeParse(value).success
-      if (expected) { console.log(`Value -> ${value}`) }
-      expect(expected).toBeFalsy()
+      const expected = IntegerSchema.safeParse(value)
+      if (expected.success) { console.log(`Value = ${value} | Parsed = ${expected.data}`)}
+      expect(expected.success).toBeFalsy()
     })
   })
 
@@ -191,7 +194,7 @@ describe('generateSentence', () => {
   })
 })
 
-describe.skip('unknown sentence', () => {
+describe('unknown sentence', () => {
   const testSentence: StoredSentence = {
     sentence: 'TEST',
     protocol: {
