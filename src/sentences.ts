@@ -1,5 +1,5 @@
 import { getChecksum, numberChecksumToString, stringChecksumToNumber } from "./checksum";
-import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, MINIMAL_LENGTH, SEPARATOR, START_FLAG } from "./constants";
+import { CHECKSUM_LENGTH, DELIMITER, END_FLAG_LENGTH, MINIMAL_LENGTH, SEPARATOR, START_FLAG_LENGTH } from "./constants";
 import { NMEALikeSchema, NMEAUknownSentenceSchema, NMEAUnparsedSentenceSchema } from "./schemas";
 import { Data, FieldType, NMEALike, NMEAPreParsed, NMEAUknownSentence, NMEAUnparsedSentence, StoredSentence } from "./types";
 // GET NMEA SENTENCE
@@ -17,7 +17,7 @@ export const isNMEAFrame = (text: string): boolean => {
     return false
   }
   // Not one DELIMITER
-  const frameParts = data.slice(START_FLAG.length, - END_FLAG.length).split(DELIMITER)
+  const frameParts = data.slice(START_FLAG_LENGTH, - END_FLAG_LENGTH).split(DELIMITER)
   if (frameParts.length !== 2) {
     console.debug(`Invalid NMEA line -> it doesn't contain just one DELIMITER ${DELIMITER}`)
     return false
@@ -40,10 +40,17 @@ export const isNMEAFrame = (text: string): boolean => {
 export const getNMEAUnparsedSentence = (text: string): NMEAUnparsedSentence | null => {
   if (!isNMEAFrame(text)) return null
   const raw = text
-  const [data, cs] = raw.slice(1, -END_FLAG.length).split(DELIMITER)
+  const [data, cs] = raw.slice(1, -END_FLAG_LENGTH).split(DELIMITER)
   const checksum = stringChecksumToNumber(cs)
   const [sentence, ...fields] = data.split(SEPARATOR)
   return NMEAUnparsedSentenceSchema.parse({ raw, sentence, checksum, fields })
+}
+
+export const getUnknownSentence = (sentence: NMEAPreParsed): NMEAUknownSentence => {
+  const unknowFrame = {...sentence, protocol: { name: 'UNKNOWN' } }
+  const parsed = NMEAUknownSentenceSchema.safeParse(unknowFrame)
+  if (parsed.success) return parsed.data
+  throw new Error(parsed.error.message)
 }
 
 // TESTING - GENERATE
@@ -86,12 +93,12 @@ export const getNumberValue = (type: FieldType): Data => {
 
     case 'float32':
     case 'float':
+      return (new Float32Array([float32Seed]))[0] + 0.01
+      
     case 'number':
-      return (new Float32Array([float32Seed]))[0]
-
     case 'float64':
     case 'double':
-        return (new Float64Array([float64Seed]))[0]
+        return (new Float64Array([float64Seed]))[0] + 0.01
   }
   throw Error('invalid type')
 }
@@ -117,11 +124,4 @@ export const generateSentence = (model: StoredSentence): NMEALike => {
   const checksum = numberChecksumToString(cs)
   sentence += `*${checksum}\r\n`
   return sentence
-}
-
-export const getUnknownSentence = (sentence: NMEAPreParsed): NMEAUknownSentence => {
-  const unknowFrame = {...sentence, protocol: { name: 'UNKNOWN' } }
-  const parsed = NMEAUknownSentenceSchema.safeParse(unknowFrame)
-  if (parsed.success) return parsed.data
-  throw new Error(parsed.error.message)
 }
