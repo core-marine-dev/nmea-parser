@@ -1,6 +1,5 @@
 import { z } from 'zod'
-import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, MINIMAL_LENGTH, SEPARATOR, START_FLAG } from './constants'
-import { stringChecksumToNumber, getChecksum } from './checksum'
+import { DELIMITER, END_FLAG, SEPARATOR, START_FLAG } from './constants'
 
 export const StringSchema = z.string()
 export const StringArraySchema = z.array(StringSchema)
@@ -39,9 +38,8 @@ export const FieldTypeSchema = z.union([
   // z.literal('long'), z.literal('int64'),
 
   z.literal('float'), z.literal('float32'),
-  z.literal('double'), z.literal('float64'),
+  z.literal('double'), z.literal('float64'), z.literal('number'),
 
-  z.literal('number'),
   // Strings
   z.literal('string'),
   // Boolean
