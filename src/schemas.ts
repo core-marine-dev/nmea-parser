@@ -102,58 +102,14 @@ export const NMEALikeSchema = StringSchema
   .includes(DELIMITER)
   .endsWith(END_FLAG)
 
-export const NMEAUnparsedSentenceSchema = NMEALikeSchema
-  .superRefine((line, ctx) => {
-    if (line.length < MINIMAL_LENGTH) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Invalid NMEA line -> it doesn\'t contain any data'
-      })
-      return
-    }
-
-    const frame = line.slice(1, - END_FLAG.length).split(DELIMITER)
-    // Check Delimiter
-    if (frame.length !== 2) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `Invalid NMEA line -> it doesn't contain just one DELIMITER ${DELIMITER}`
-      })
-      return
-    }
-    // Check Checksum length
-    const [data, checksum] = frame
-    if (checksum.length !== CHECKSUM_LENGTH) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `Invalid NMEA line -> checksum has not just two characters => CHECKSUM = ${checksum}`
-      })
-      return
-    }
-    const dataChecksumNumber = getChecksum(data)
-    const checksumNumber = stringChecksumToNumber(checksum)
-    if (dataChecksumNumber !== checksumNumber) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `Invalid NMEA line -> calculated checksum ${dataChecksumNumber} != frame checksum ${checksumNumber}`
-      })
-    }
-  })
-  .transform(str => {
-    const raw = str
-    const [data, cs] = raw.slice(1, -END_FLAG.length).split(DELIMITER)
-    const checksum = stringChecksumToNumber(cs)
-    const [sentence, ...fields] = data.split(SEPARATOR)
-    return { raw, sentence, checksum, fields }
-  })
-
-export const NMEAPreParsedSentenceSchema = z.object({
-  timestamp: NaturalSchema,
-  raw: NMEALikeSchema,
+export const NMEAUnparsedSentenceSchema = z.object({
+  raw: StringSchema,
   sentence: StringSchema,
-  checksum: NumberSchema,
-  fields: z.array(StringSchema),
+  checksum: NaturalSchema,
+  fields: StringArraySchema
 })
+
+export const NMEAPreParsedSentenceSchema = NMEAUnparsedSentenceSchema.extend({ timestamp: NaturalSchema })
 
 export const DataSchema = z.union([StringSchema, NumberSchema, BooleanSchema]).nullish()
 
@@ -161,10 +117,20 @@ export const FieldParsedSchema = FieldSchema.and(z.object({
   data: DataSchema
 }))
 
-export const NMEASentenceSchema = z.intersection(
-  NMEAPreParsedSentenceSchema,
-  z.object({
-    fields: z.array(FieldParsedSchema),
-    data: z.array(DataSchema)
-  })
-)
+export const StoredSentenceDataSchema = StoredSentenceSchema.extend({
+  fields: z.array(FieldParsedSchema),
+  data: z.array(DataSchema)
+})
+
+export const NMEAUknownSentenceSchema = NMEAPreParsedSentenceSchema.extend({
+  protocol: z.object({ name: z.literal('UNKNOWN') })
+})
+
+export const NMEAKnownSentenceSchema = StoredSentenceDataSchema.extend({
+  timestamp: NaturalSchema,
+  checksum: NumberSchema,
+  fields: z.array(FieldParsedSchema),
+  data: z.array(DataSchema)
+})
+
+export const NMEASentenceSchema = z.union([NMEAKnownSentenceSchema, NMEAUknownSentenceSchema])

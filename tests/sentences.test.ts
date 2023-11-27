@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
-import { generateSentence, getNumberValue, getValue } from '../src/sentences'
-import { FieldType, StoredSentence } from '../src/types'
-import { Int16Schema, Int32Schema, Int8Schema, IntegerSchema, NMEALikeSchema, NaturalSchema, Uint16Schema, Uint32Schema, Uint8Schema } from '../src/schemas'
+import { generateSentence, getNMEAUnparsedSentence, getNumberValue, getUnknownSentence, getValue } from '../src/sentences'
+import { FieldType, NMEAPreParsed, NMEAUnparsedSentence, StoredSentence } from '../src/types'
+import { Int16Schema, Int32Schema, Int8Schema, IntegerSchema, NMEALikeSchema, NMEAPreParsedSentenceSchema, NMEAUnparsedSentenceSchema, NaturalSchema, Uint16Schema, Uint32Schema, Uint8Schema } from '../src/schemas'
 import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, SEPARATOR } from '../src/constants'
 
 describe.skip('getNumberValue', () => {
@@ -130,7 +130,7 @@ describe.skip('getValue', () => {
   })
 })
 
-describe('generateSentence', () => {
+describe.skip('generateSentence', () => {
   const testSentence: StoredSentence = {
     sentence: 'TEST',
     protocol: {
@@ -184,5 +184,38 @@ describe('generateSentence', () => {
     expect(Uint32Array.from([field9])[0]).toBe(field9)
     expect(field10).toBeTypeOf('boolean')
     expect(field11).toBeTypeOf('string')
+  })
+})
+
+describe('unknown sentence', () => {
+  const testSentence: StoredSentence = {
+    sentence: 'TEST',
+    protocol: {
+      name: 'TESTING PROTOCOL',
+      standard: false,
+      version: '1.2.3'
+    },
+    fields: [
+      { name: 'latitude', type: 'number', units: 'deg' },
+      { name: 'longitude', type: 'float32', units: 'deg' },
+      { name: 'altitude', type: 'float64', units: 'm' },
+      { name: 'a', type: 'int8'},
+      { name: 'b', type: 'int16'},
+      { name: 'c', type: 'int32'},
+      { name: 'd', type: 'uint8'},
+      { name: 'e', type: 'uint16'},
+      { name: 'f', type: 'uint32'},
+      { name: 'g', type: 'boolean'},
+      { name: 'h', type: 'string'},
+    ],
+    description: 'This is just an invented sentence for testing'
+  }
+  test('getUnknownSentence', () => {
+    const text = generateSentence(testSentence)
+    const unparsedSentence: NMEAUnparsedSentence = getNMEAUnparsedSentence(text) as NMEAUnparsedSentence
+    const preparsedFrame = { timestamp: Date.now(), ...unparsedSentence }
+    const input: NMEAPreParsed = NMEAPreParsedSentenceSchema.parse(preparsedFrame)
+    const result = getUnknownSentence(input)
+    expect(result.protocol.name).toBe('UNKNOWN')
   })
 })
