@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { generateSentence, getNMEAUnparsedSentence, getNumberValue, getUnknownSentence, getValue } from '../src/sentences'
 import { FieldType, NMEAPreParsed, NMEAUnparsedSentence, StoredSentence } from '../src/types'
 import { Int16Schema, Int32Schema, Int8Schema, IntegerSchema, NMEALikeSchema, NMEAPreParsedSentenceSchema, NMEAUnparsedSentenceSchema, NaturalSchema, Uint16Schema, Uint32Schema, Uint8Schema } from '../src/schemas'
-import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, SEPARATOR } from '../src/constants'
+import { CHECKSUM_LENGTH, DELIMITER_LENGTH, END_FLAG_LENGTH, SEPARATOR, START_FLAG_LENGTH } from '../src/constants'
 
 describe.skip('getNumberValue', () => {
 
@@ -158,7 +158,7 @@ describe.skip('generateSentence', () => {
     const parsed = NMEALikeSchema.parse(expected)
     expect(parsed).toBe(expected)
 
-    const info = parsed.slice(1, - (DELIMITER.length + CHECKSUM_LENGTH + END_FLAG.length)).split(SEPARATOR)
+    const info = parsed.slice(1, - (DELIMITER_LENGTH + CHECKSUM_LENGTH + END_FLAG_LENGTH)).split(SEPARATOR)
     const field0 = info[0]
     const field1 = Number(info[1])
     const field2 = Number(info[2])
@@ -205,17 +205,21 @@ describe('unknown sentence', () => {
       { name: 'd', type: 'uint8'},
       { name: 'e', type: 'uint16'},
       { name: 'f', type: 'uint32'},
-      { name: 'g', type: 'boolean'},
-      { name: 'h', type: 'string'},
+      { name: 'g', type: 'float32'},
+      { name: 'h', type: 'float64'},
+      { name: 'i', type: 'boolean'},
+      { name: 'j', type: 'string'},
     ],
     description: 'This is just an invented sentence for testing'
   }
   test('getUnknownSentence', () => {
     const text = generateSentence(testSentence)
+    const fields = text.slice(START_FLAG_LENGTH, - (DELIMITER_LENGTH + CHECKSUM_LENGTH + ))
     const unparsedSentence: NMEAUnparsedSentence = getNMEAUnparsedSentence(text) as NMEAUnparsedSentence
     const preparsedFrame = { timestamp: Date.now(), ...unparsedSentence }
     const input: NMEAPreParsed = NMEAPreParsedSentenceSchema.parse(preparsedFrame)
     const result = getUnknownSentence(input)
     expect(result.protocol.name).toBe('UNKNOWN')
+
   })
 })

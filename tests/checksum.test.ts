@@ -1,5 +1,5 @@
 import { test, expect } from "vitest"
-import { CHECKSUM_LENGTH, DELIMITER, END_FLAG} from '../src/constants'
+import { CHECKSUM_LENGTH, DELIMITER, DELIMITER_LENGTH, END_FLAG_LENGTH} from '../src/constants'
 import { getChecksum, numberChecksumToString, stringChecksumToNumber } from '../src/checksum'
 
 
@@ -16,7 +16,7 @@ const EXPECTED_CHECKSUMS = [ 121, 48, 98, 122, 48, 97 ]
 
 test('getChecksum', () => {
   TEST_SENTENCES.forEach((sentence, index) => {
-    const data = sentence.slice(1, - (DELIMITER.length + CHECKSUM_LENGTH + END_FLAG.length))
+    const data = sentence.slice(1, - (DELIMITER_LENGTH + CHECKSUM_LENGTH + END_FLAG_LENGTH))
     const checksum = getChecksum(data)
     expect(checksum).toBe(EXPECTED_CHECKSUMS[index])
   })
