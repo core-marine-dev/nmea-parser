@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest'
 import { generateSentence, getNMEAUnparsedSentence, getNumberValue, getUnknownSentence, getValue } from '../src/sentences'
 import { FieldType, NMEAPreParsed, NMEAUnparsedSentence, StoredSentence } from '../src/types'
-import { Int16Schema, Int32Schema, Int8Schema, IntegerSchema, NMEALikeSchema, NMEAPreParsedSentenceSchema, NMEAUnparsedSentenceSchema, NaturalSchema, Uint16Schema, Uint32Schema, Uint8Schema } from '../src/schemas'
-import { CHECKSUM_LENGTH, DELIMITER_LENGTH, END_FLAG_LENGTH, SEPARATOR, START_FLAG_LENGTH } from '../src/constants'
+import { Int16Schema, Int32Schema, Int8Schema, IntegerSchema, NMEALikeSchema, NMEAPreParsedSentenceSchema, NaturalSchema, Uint16Schema, Uint32Schema, Uint8Schema } from '../src/schemas'
+import { CHECKSUM_LENGTH, DELIMITER_LENGTH, END_FLAG_LENGTH, SEPARATOR } from '../src/constants'
 
 describe('getNumberValue', () => {
 

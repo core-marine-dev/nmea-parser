@@ -2,6 +2,7 @@ import { getChecksum, numberChecksumToString, stringChecksumToNumber } from "./c
 import { CHECKSUM_LENGTH, DELIMITER, END_FLAG_LENGTH, MINIMAL_LENGTH, SEPARATOR, START_FLAG_LENGTH } from "./constants";
 import { NMEALikeSchema, NMEAUknownSentenceSchema, NMEAUnparsedSentenceSchema } from "./schemas";
 import { Data, FieldType, NMEALike, NMEAPreParsed, NMEAUknownSentence, NMEAUnparsedSentence, StoredSentence } from "./types";
+import { isLowerCharASCII, isNumberCharASCII, isUpperCharASCII } from "./utils";
 // GET NMEA SENTENCE
 export const isNMEAFrame = (text: string): boolean => {
   // Not valid NMEA like
@@ -104,13 +105,22 @@ export const getNumberValue = (type: FieldType): Data => {
   throw Error('invalid type')
 }
 
+export const getStringValue = (): string => {
+  const text = Buffer.from(Math.random().toString(36).substring(2)).toString('ascii')
+  const array = Array.from(text).map(letter => {
+    if (isLowerCharASCII(letter) || isUpperCharASCII(letter) || isNumberCharASCII(letter)) { return letter }
+    return 'a'
+  })
+  return array.join('')
+}
+
 export const getValue = (type: FieldType): Data => {
   switch (type) {
     case 'bool':
     case 'boolean':
       return Math.random() > 0.5
     case 'string':
-      return Math.random().toString(36).substring(2)
+      return getStringValue()
   }
   return getNumberValue(type)
 }
