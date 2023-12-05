@@ -27,7 +27,7 @@ protocols:
             type: float
           # 4
           - name: radius_units
-            type: number
+            type: float64
             units: nautic miles
           # 5
           - name: waypoint_id
@@ -71,36 +71,36 @@ protocols:
               8: Simulator Mode"
           # 7
           - name: satellites
-            type: number
+            type: float64
           # 8
           - name: hdop
-            type: number
+            type: float64
           # 9
           - name: altitude
-            type: number
+            type: float64
             units: m
             note: "Orthometric height Mean-Sea-Level (MSL reference)"
           # 10
           - name: altitude_meters
-            type: number
+            type: float64
             units: m
           # 11
           - name: geoid_separation
-            type: number
+            type: float64
             units: m
             note: "Geoidal Separation: the difference between the WGS-84 earth ellipsoid surface and mean-sea-level (geoid) surface, \"-\" = mean-sea-level surface below WGS-84 ellipsoid surface."
           # 12
           - name: geoid_separation_meters
-            type: number
+            type: float64
             units: m
           # 13
           - name: age_of_differential_gps_data
-            type: number
+            type: float64
             units: sec
             note: "Time in seconds since last SC104 Type 1 or 9 update, null field when DGPS is not used300"
           # 14
           - name: reference_station_id
-            type: number
+            type: float64
             note: "	Reference station ID, range 0000 to 4095. A null field when any reference station ID is selected and no corrections are received. See table below for a description of the field values.\n
 
               0002	CenterPoint or ViewPoint RTX\n
