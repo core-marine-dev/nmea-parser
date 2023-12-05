@@ -111,9 +111,9 @@ export const NMEAPreParsedSentenceSchema = NMEAUnparsedSentenceSchema.extend({ t
 
 export const DataSchema = z.union([StringSchema, NumberSchema, BooleanSchema]).nullish()
 
-export const FieldParsedSchema = FieldSchema.and(z.object({
+export const FieldParsedSchema = FieldSchema.extend({
   data: DataSchema
-}))
+})
 
 export const StoredSentenceDataSchema = StoredSentenceSchema.extend({
   fields: z.array(FieldParsedSchema),
