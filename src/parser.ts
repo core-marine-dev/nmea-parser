@@ -1,8 +1,8 @@
 import { readdirSync } from 'node:fs'
 import Path from 'node:path'
 import { END_FLAG, END_FLAG_LENGTH, MAX_CHARACTERS, START_FLAG, START_FLAG_LENGTH } from "./constants";
-import { BooleanSchema, NMEALikeSchema, NaturalSchema, StringSchema } from "./schemas";
-import { Data, FieldType, NMEAKnownSentence, NMEAParser, NMEAPreParsed, NMEASentence, NMEAUknownSentence, ParserSentences, StoredSentence, StoredSentences } from "./types";
+import { BooleanSchema, NMEALikeSchema, NaturalSchema, ProtocolsInputSchema, StringSchema } from "./schemas";
+import { Data, FieldType, NMEAKnownSentence, NMEAParser, NMEAPreParsed, NMEASentence, NMEAUknownSentence, ParserSentences, ProtocolsFile, ProtocolsInput, StoredSentence, StoredSentences } from "./types";
 import { getStoreSentences, readProtocolsFile } from './protocols';
 import { getNMEAUnparsedSentence } from './sentences';
 
@@ -35,15 +35,27 @@ export class Parser implements NMEAParser {
     const files = readdirSync(folder, { encoding: 'utf-8' })
     files.forEach(file => {
       const absoluteFile = Path.join(folder, file)
-      this.addProtocols(absoluteFile)
+      this.addProtocols({ file: absoluteFile} )
     })
+  }
+
+  private readProtocols(input: ProtocolsInput): ProtocolsFile {
+    if (input.file !== undefined) return readProtocolsFile(input.file)
+    if (input.content !== undefined) return input.content
+    if (input.protocols !== undefined) return { protocols: input.protocols }
+    throw new Error('Invalid protocols to add')
   }
 
   getProtocols(): string[] { return this._protocols }
 
-  addProtocols(file: string): void {
-    // Get protocols from file
-    const { protocols } = readProtocolsFile(file)
+  addProtocols(input: ProtocolsInput): void {
+    const parsed = ProtocolsInputSchema.safeParse(input)
+    if (!parsed.success) {
+      const error = parsed.error
+      console.error(`Invalid protocols to add\n\tError = ${error}`)
+      throw error
+    }
+    const { protocols } = this.readProtocols(input)
     // Add to known protocols
     protocols.forEach(protocol => {
       const protocolName = protocol.protocol

@@ -5,6 +5,8 @@ import { generateSentence } from '../src/sentences'
 import { NMEAKnownSentenceSchema, NMEAUknownSentenceSchema } from '../src/schemas'
 import { DELIMITER, END_FLAG, END_FLAG_LENGTH, SEPARATOR, START_FLAG_LENGTH } from '../src/constants'
 import { getChecksum, numberChecksumToString } from '../src/checksum'
+import { readProtocolsFile } from '../src/protocols'
+import { Protocol, ProtocolsFile } from '../src/types'
 
 const NORSUB_FILE = path.join(__dirname, 'norsub.yaml')
 
@@ -19,9 +21,74 @@ describe('Parser', () => {
     expectedSentences.forEach(sentence => expect(Object.keys(parserSentences).includes(sentence)).toBeTruthy())
   })
   
-  test('Add protocols', () => {
+  test('Add protocols with file', () => {
+    const file = NORSUB_FILE
     const parser = new Parser()
-    parser.addProtocols(NORSUB_FILE)
+    parser.addProtocols({ file })
+
+    const parserProtocols = parser.getProtocols()
+    
+    const expectedProtocols = [
+      'NMEA',
+      'GYROCOMPAS1', 'Tokimek PTVG', 'RDI ADCP', 'SMCA', 'SMCC',
+      'NORSUB', 'NORSUB2', 'NORSUB6', 'NORSUB7', 'NORSUB7b', 'NORSUB8', 'NORSUB PRDID',
+    ]
+    expectedProtocols.forEach(protocol => {
+      const result = parserProtocols.includes(protocol)
+      if (!result) { console.log(`Protocol ${protocol} is not included`) }
+      expect(result).toBeTruthy()
+    })
+  
+    const parserSentences = parser.getSentences()
+    const expectedSentences = [
+      'AAM', 'GGA',
+      'HEHDT', 'PHTRO', 'PHINF',
+      'PNORSUB', 'PNORSUB2', 'PNORSUB6', 'PNORSUB7', 'PNORSUB7b', 'PNORSUB8', 'PRDID',
+      'PTVG', 'PRDID', 'PSMCA', 'PSMCC',
+    ]
+    expectedSentences.forEach(sentence => {
+      const result = Object.keys(parserSentences).includes(sentence)
+      if (!result) { console.log(`Sentence ${sentence} is not included`) }
+      expect(result).toBeTruthy()
+    })
+  })
+  
+  test('Add protocols with content', () => {
+    const content = readProtocolsFile(NORSUB_FILE)
+    const parser = new Parser()
+    parser.addProtocols({ content })
+
+    const parserProtocols = parser.getProtocols()
+    
+    const expectedProtocols = [
+      'NMEA',
+      'GYROCOMPAS1', 'Tokimek PTVG', 'RDI ADCP', 'SMCA', 'SMCC',
+      'NORSUB', 'NORSUB2', 'NORSUB6', 'NORSUB7', 'NORSUB7b', 'NORSUB8', 'NORSUB PRDID',
+    ]
+    expectedProtocols.forEach(protocol => {
+      const result = parserProtocols.includes(protocol)
+      if (!result) { console.log(`Protocol ${protocol} is not included`) }
+      expect(result).toBeTruthy()
+    })
+  
+    const parserSentences = parser.getSentences()
+    const expectedSentences = [
+      'AAM', 'GGA',
+      'HEHDT', 'PHTRO', 'PHINF',
+      'PNORSUB', 'PNORSUB2', 'PNORSUB6', 'PNORSUB7', 'PNORSUB7b', 'PNORSUB8', 'PRDID',
+      'PTVG', 'PRDID', 'PSMCA', 'PSMCC',
+    ]
+    expectedSentences.forEach(sentence => {
+      const result = Object.keys(parserSentences).includes(sentence)
+      if (!result) { console.log(`Sentence ${sentence} is not included`) }
+      expect(result).toBeTruthy()
+    })
+  })
+  
+  test('Add protocols with protocols', () => {
+    const { protocols } = readProtocolsFile(NORSUB_FILE)
+    const parser = new Parser()
+    parser.addProtocols({ protocols })
 
     const parserProtocols = parser.getProtocols()
     
@@ -50,15 +117,27 @@ describe('Parser', () => {
     })
   })
 
+  test('Add protocols error', () => {
+    const parser = new Parser()
+    expect(() => parser.addProtocols({})).toThrow()
+    expect(() => parser.addProtocols({ file: '' })).toThrow()
+    expect(() => parser.addProtocols({ content: {} as ProtocolsFile })).toThrow()
+    expect(() => parser.addProtocols({ protocols: {} as Protocol[] })).toThrow()
+  })
+
   test('Parsing NMEA + NorSub sentences', () => {
     const parser = new Parser()
-    parser.addProtocols(NORSUB_FILE)
+    parser.addProtocols({ file: NORSUB_FILE })
     const storedSentences = parser.getSentences()
     Object.values(storedSentences).forEach(storedSentence => {
       const input = generateSentence(storedSentence)
       expect(input).toBeTypeOf('string')
       const output = parser.parseData(input)[0]
-      expect(() => NMEAKnownSentenceSchema.parse(output)).not.toThrow()
+      const parsed = NMEAKnownSentenceSchema.safeParse(output)
+      if (!parsed.success) {
+        console.error(parsed.error)
+      }
+      expect(parsed.success).toBeTruthy()
     })
   })
 
