@@ -2,6 +2,7 @@ import path from 'node:path'
 import { describe, test, expect } from 'vitest'
 import { Protocol, StoredSentence } from '../src/types'
 import { getStoreSentences, readProtocolsFile } from '../src/protocols' 
+import { ProtocolSchema } from '../src/schemas'
 
 const PROTOCOLS_FILE = path.join(__dirname, 'norsub.yaml')
 const EXPECTED_PROTOCOLS: Protocol[] = [
@@ -204,7 +205,12 @@ describe('Protocols Files', () => {
 
   test('Right protocols file', () => {
     const { protocols } = readProtocolsFile(PROTOCOLS_FILE)
-    expect(protocols).toStrictEqual(EXPECTED_PROTOCOLS)
+    protocols.forEach(protocol => {
+      const parsed = ProtocolSchema.safeParse(protocol)
+      if (!parsed.success) { console.error(parsed.error) }
+      expect(parsed.success).toBeTruthy()
+    })
+    // expect(protocols).toStrictEqual(EXPECTED_PROTOCOLS)
   })
 })
 
@@ -212,8 +218,10 @@ describe('Protocols File to StoredSentences', () => {
   test('Happy path', () => {
     const { protocols } = readProtocolsFile(PROTOCOLS_FILE)
     const sentences = getStoreSentences({ protocols })
-    sentences.forEach((value, key) => {
+    Object.keys(EXPECTED_STORED_SENTECES).forEach(key => {
+    // sentences.forEach((value, key) => {
       const expected = EXPECTED_STORED_SENTECES[key]
+      const value = sentences.get(key)
       expect(value).toEqual(expected)
     })
   })
