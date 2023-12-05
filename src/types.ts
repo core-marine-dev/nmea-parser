@@ -5,7 +5,7 @@ import {
   VersionSchema, JSONSchemaInputSchema,
   StoredSentenceSchema, StoredSentencesSchema,
   NMEALikeSchema, NMEAUnparsedSentenceSchema, NMEAPreParsedSentenceSchema,
-  DataSchema, FieldParsedSchema, NMEASentenceSchema, NMEAUknownSentenceSchema, NMEAKnownSentenceSchema,
+  DataSchema, FieldParsedSchema, NMEASentenceSchema, NMEAUknownSentenceSchema, NMEAKnownSentenceSchema, ProtocolsInputSchema,
 } from './schemas'
 
 // PROTOCOLS
@@ -30,8 +30,10 @@ export type NMEAUknownSentence = z.infer<typeof NMEAUknownSentenceSchema>
 export type NMEAKnownSentence = z.infer<typeof NMEAKnownSentenceSchema>
 export type NMEASentence = z.infer<typeof NMEASentenceSchema>
 // PARSER
+export type ProtocolsInput = z.infer<typeof ProtocolsInputSchema>
+
 export interface NMEAParser {
-  addProtocols(protocol: any): void,
+  addProtocols(protocols: ProtocolsInput): void,
   getProtocols(): string[],
   getSentences(): ParserSentences,
   parseData(data: string): any[],
