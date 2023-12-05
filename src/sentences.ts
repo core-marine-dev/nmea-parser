@@ -1,5 +1,5 @@
 import { getChecksum, numberChecksumToString, stringChecksumToNumber } from "./checksum";
-import { CHECKSUM_LENGTH, DELIMITER, END_FLAG_LENGTH, MINIMAL_LENGTH, SEPARATOR, START_FLAG_LENGTH } from "./constants";
+import { CHECKSUM_LENGTH, DELIMITER, END_FLAG_LENGTH, MINIMAL_LENGTH, SEPARATOR, START_FLAG, START_FLAG_LENGTH } from "./constants";
 import { NMEALikeSchema, NMEAUknownSentenceSchema, NMEAUnparsedSentenceSchema } from "./schemas";
 import { Data, FieldType, NMEALike, NMEAPreParsed, NMEAUknownSentence, NMEAUnparsedSentence, StoredSentence } from "./types";
 import { isLowerCharASCII, isNumberCharASCII, isUpperCharASCII } from "./utils";
@@ -9,6 +9,11 @@ export const isNMEAFrame = (text: string): boolean => {
   const parsed = NMEALikeSchema.safeParse(text)
   if (!parsed.success) {
     console.debug(`Error parsing frame -> ${parsed.error.message}`)
+    return false
+  }
+  // More than one START Flag
+  if (text.lastIndexOf(START_FLAG) > 0) {
+    console.debug(`Invalid NMEA line -> it contains more than one ${START_FLAG} symbol -> ${text}`)
     return false
   }
   // Not enough characters
