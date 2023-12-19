@@ -1,0 +1,133 @@
+protocols:
+  - protocol: NMEA
+    version: '3.1'
+    standard: true
+    sentences:
+      - sentence: AAM
+        description: Waypoint Arrival Alarm
+        fields:
+          # 1
+          - name: status
+            type: string
+            note: "BOOLEAN\n
+            
+              A = arrival circle entered\n
+
+              V = arrival circle not passed"
+          # 2
+          - name: status
+            type: string
+            note: "BOOLEAN\n
+            
+              A = perpendicular passed at waypoint\n
+              
+              V = perpendicular not passed"
+          # 3
+          - name: arrival_circle_radius
+            type: float
+          # 4
+          - name: radius_units
+            type: float64
+            units: nautic miles
+          # 5
+          - name: waypoint_id
+            type: string
+      - sentence: GGA
+        description: Global Positioning System Fix Data
+        fields:
+          # 1
+          - name: utc_position
+            type: string
+            units: ms
+          # 2
+          - name: latitude
+            type: float
+            units: deg
+          # 3
+          - name: latitude_direction
+            type: string
+            note: "N: North\n
+              S: South"
+          # 4
+          - name: longitude
+            type: float
+            units: deg
+          # 5
+          - name: longitude_direction
+            type: string
+            note: "E - East\n
+              W - West"
+          # 6
+          - name: gps_quality
+            type: int8
+            note: "0: Fix not valid\n
+              1: GPS fix\n
+              2: Differential GPS fix (DGNSS), SBAS, OmniSTAR VBS, Beacon, RTX in GVBS mode\n
+              3: Not applicable\n
+              4: RTK Fixed, xFill\n
+              5: RTK Float, OmniSTAR XP/HP, Location RTK, RTX\n
+              6: INS Dead reckoning\n
+              7: Manual Input Mode\n
+              8: Simulator Mode"
+          # 7
+          - name: satellites
+            type: float64
+          # 8
+          - name: hdop
+            type: float64
+          # 9
+          - name: altitude
+            type: float64
+            units: m
+            note: "Orthometric height Mean-Sea-Level (MSL reference)"
+          # 10
+          - name: altitude_meters
+            type: float64
+            units: m
+          # 11
+          - name: geoid_separation
+            type: float64
+            units: m
+            note: "Geoidal Separation: the difference between the WGS-84 earth ellipsoid surface and mean-sea-level (geoid) surface, \"-\" = mean-sea-level surface below WGS-84 ellipsoid surface."
+          # 12
+          - name: geoid_separation_meters
+            type: float64
+            units: m
+          # 13
+          - name: age_of_differential_gps_data
+            type: float64
+            units: sec
+            note: "Time in seconds since last SC104 Type 1 or 9 update, null field when DGPS is not used300"
+          # 14
+          - name: reference_station_id
+            type: float64
+            note: "	Reference station ID, range 0000 to 4095. A null field when any reference station ID is selected and no corrections are received. See table below for a description of the field values.\n
+
+              0002	CenterPoint or ViewPoint RTX\n
+
+              0005	RangePoint RTX\n
+
+              0006	FieldPoint RTX\n
+
+              0100	VBS\n
+
+              1000	HP\n
+
+              1001	HP/XP (Orbits)\n
+
+              1002	HP/G2 (Orbits)\n
+              
+              1008	XP (GPS)\n
+              
+              1012	G2 (GPS)\n
+              
+              1013	G2 (GPS/GLONASS)\n
+              
+              1014	G2 (GLONASS)\n
+              
+              1016	HP/XP (GPS)\n
+              
+              1020	HP/G2 (GPS)\n
+              
+              1021	HP/G2 (GPS/GLONASS)"
+
