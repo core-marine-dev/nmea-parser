@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, test, expect } from 'vitest'
-import { Parser } from '../src/parser'
+import Parser from '../src'
 import { generateSentence } from '../src/sentences'
 import { NMEAKnownSentenceSchema, NMEAUknownSentenceSchema } from '../src/schemas'
 import { DELIMITER, END_FLAG, END_FLAG_LENGTH, SEPARATOR, START_FLAG_LENGTH } from '../src/constants'
