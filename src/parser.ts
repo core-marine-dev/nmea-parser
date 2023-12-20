@@ -2,7 +2,7 @@ import { readdirSync } from 'node:fs'
 import Path from 'node:path'
 import { END_FLAG, END_FLAG_LENGTH, MAX_CHARACTERS, START_FLAG, START_FLAG_LENGTH } from "./constants";
 import { BooleanSchema, NMEALikeSchema, NaturalSchema, ProtocolsInputSchema, StringSchema } from "./schemas";
-import { Data, FieldType, NMEAKnownSentence, NMEAParser, NMEAPreParsed, NMEASentence, NMEAUknownSentence, ParserSentences, ProtocolsFile, ProtocolsInput, StoredSentence, StoredSentences } from "./types";
+import { Data, FieldType, FieldUnknown, NMEAKnownSentence, NMEAParser, NMEAPreParsed, NMEASentence, NMEAUknownSentence, ParserSentences, ProtocolsFile, ProtocolsInput, StoredSentence, StoredSentences } from "./types";
 import { getStoreSentences, readProtocolsFile } from './protocols';
 import { getNMEAUnparsedSentence } from './sentences';
 
@@ -97,19 +97,22 @@ export class Parser implements NMEAParser {
   }
 
   private getUnknowFrame(sentence: NMEAPreParsed): NMEAUknownSentence {
-    return { ...sentence, protocol: { name: 'UNKNOWN' } }
+    const fields: FieldUnknown[] = sentence.data.map(value => ({
+      name: 'unknown', type: 'string', data: value
+    }))
+    return { ...sentence, fields, protocol: { name: 'UNKNOWN' } }
   }
 
   private getKnownFrame(preparsed: NMEAPreParsed): NMEAKnownSentence | null {
     const storedSentence = this._sentences.get(preparsed.sentence) as StoredSentence
     // Bad known frame
-    if (storedSentence.fields.length !== preparsed.fields.length) {
-      console.debug(`Invalid ${preparsed.sentence} sentence -> it has to have ${storedSentence.fields.length} fields but it contains ${preparsed.fields.length}`)
+    if (storedSentence.fields.length !== preparsed.data.length) {
+      console.debug(`Invalid ${preparsed.sentence} sentence -> it has to have ${storedSentence.fields.length} fields but it contains ${preparsed.data.length}`)
       return null
     }
     try {
       const knownSentence: NMEAKnownSentence = {...preparsed, ...storedSentence, data: [] } as NMEAKnownSentence
-      preparsed.fields.forEach((value, index) => {
+      preparsed.data.forEach((value, index) => {
         const type = knownSentence.fields[index].type
         const data = this.getField(value, type)
         knownSentence.fields[index].data = data

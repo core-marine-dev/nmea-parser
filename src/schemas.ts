@@ -51,6 +51,12 @@ export const FieldSchema = z.object({
   note: StringSchema.optional()
 })
 
+export const FieldUnknownSchema = z.object({
+  name: z.literal('unknown'),
+  type: z.literal('string'),
+  data: StringSchema,
+})
+
 export const ProtocolSentenceSchema = z.object({
   sentence: StringSchema,
   fields: z.array(FieldSchema),
@@ -106,7 +112,7 @@ export const NMEAUnparsedSentenceSchema = z.object({
   raw: StringSchema,
   sentence: StringSchema,
   checksum: NaturalSchema,
-  fields: StringArraySchema
+  data: StringArraySchema
 })
 
 export const NMEAPreParsedSentenceSchema = NMEAUnparsedSentenceSchema.extend({ timestamp: NaturalSchema })
@@ -123,7 +129,8 @@ export const StoredSentenceDataSchema = StoredSentenceSchema.extend({
 })
 
 export const NMEAUknownSentenceSchema = NMEAPreParsedSentenceSchema.extend({
-  protocol: z.object({ name: z.literal('UNKNOWN') })
+  protocol: z.object({ name: z.literal('UNKNOWN') }),
+  fields: z.array(FieldUnknownSchema),
 })
 
 export const NMEAKnownSentenceSchema = StoredSentenceDataSchema.extend({
