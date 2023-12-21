@@ -14,11 +14,15 @@ export const createJSONSchema = (input: JSONSchemaInput) => {
   fs.writeFileSync(FILE, CONTENT)
 }
 
+export const readProtocolsString = (content: string): ProtocolsFile => {
+  const fileData = yaml.load(content)
+  return ProtocolsFileSchema.parse(fileData)
+}
+
 export const readProtocolsFile = (file: string): ProtocolsFile => {
   const filename = StringSchema.parse(file)
   const content = fs.readFileSync(filename, 'utf-8')
-  const fileData = yaml.load(content)
-  return ProtocolsFileSchema.parse(fileData)
+  return readProtocolsString(content)
 }
 
 const getStoreSentencesFromProtocol = (protocol: Protocol) => {

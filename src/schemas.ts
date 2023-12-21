@@ -80,7 +80,7 @@ export const ProtocolsFileSchema = z.object({ protocols: z.array(ProtocolSchema)
 
 export const ProtocolsInputSchema = z.object({
   file: StringSchema.optional(),
-  content: ProtocolsFileSchema.optional(),
+  content: StringSchema.optional(),
   protocols: z.array(ProtocolSchema).optional()
 })
 

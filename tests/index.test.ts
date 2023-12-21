@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import path from 'node:path'
 import { describe, test, expect } from 'vitest'
 import Parser from '../src'
@@ -54,7 +55,7 @@ describe('Parser', () => {
   })
   
   test('Add protocols with content', () => {
-    const content = readProtocolsFile(NORSUB_FILE)
+    const content = fs.readFileSync(NORSUB_FILE, 'utf-8')
     const parser = new Parser()
     parser.addProtocols({ content })
 
@@ -121,7 +122,7 @@ describe('Parser', () => {
     const parser = new Parser()
     expect(() => parser.addProtocols({})).toThrow()
     expect(() => parser.addProtocols({ file: '' })).toThrow()
-    expect(() => parser.addProtocols({ content: {} as ProtocolsFile })).toThrow()
+    expect(() => parser.addProtocols({ content: '' })).toThrow()
     expect(() => parser.addProtocols({ protocols: {} as Protocol[] })).toThrow()
   })
 

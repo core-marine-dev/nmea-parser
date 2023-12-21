@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import path from 'node:path'
 import { describe, test, expect } from 'vitest'
 import { Parser } from '../src/parser'
@@ -5,7 +6,7 @@ import { generateSentence } from '../src/sentences'
 import { NMEAKnownSentenceSchema, NMEAUknownSentenceSchema } from '../src/schemas'
 import { DELIMITER, END_FLAG, END_FLAG_LENGTH, SEPARATOR, START_FLAG_LENGTH } from '../src/constants'
 import { getChecksum, numberChecksumToString } from '../src/checksum'
-import { readProtocolsFile } from '../src/protocols'
+import { readProtocolsFile, readProtocolsString } from '../src/protocols'
 import { Protocol, ProtocolsFile } from '../src/types'
 
 const NORSUB_FILE = path.join(__dirname, 'norsub.yaml')
@@ -54,7 +55,7 @@ describe('Parser', () => {
   })
   
   test('Add protocols with content', () => {
-    const content = readProtocolsFile(NORSUB_FILE)
+    const content = fs.readFileSync(NORSUB_FILE, 'utf-8')
     const parser = new Parser()
     parser.addProtocols({ content })
 
@@ -121,7 +122,7 @@ describe('Parser', () => {
     const parser = new Parser()
     expect(() => parser.addProtocols({})).toThrow()
     expect(() => parser.addProtocols({ file: '' })).toThrow()
-    expect(() => parser.addProtocols({ content: {} as ProtocolsFile })).toThrow()
+    expect(() => parser.addProtocols({ content: '' })).toThrow()
     expect(() => parser.addProtocols({ protocols: {} as Protocol[] })).toThrow()
   })
 
