@@ -1,7 +1,8 @@
+import fs from 'node:fs'
 import path from 'node:path'
 import { describe, test, expect } from 'vitest'
 import { Protocol, StoredSentence } from '../src/types'
-import { getStoreSentences, readProtocolsFile } from '../src/protocols' 
+import { getStoreSentences, readProtocolsFile, readProtocolsString } from '../src/protocols' 
 import { ProtocolSchema } from '../src/schemas'
 
 const PROTOCOLS_FILE = path.join(__dirname, 'norsub.yaml')
@@ -217,6 +218,20 @@ describe('Protocols Files', () => {
 describe('Protocols File to StoredSentences', () => {
   test('Happy path', () => {
     const { protocols } = readProtocolsFile(PROTOCOLS_FILE)
+    const sentences = getStoreSentences({ protocols })
+    Object.keys(EXPECTED_STORED_SENTECES).forEach(key => {
+    // sentences.forEach((value, key) => {
+      const expected = EXPECTED_STORED_SENTECES[key]
+      const value = sentences.get(key)
+      expect(value).toEqual(expected)
+    })
+  })
+})
+
+describe('Protocols content to StoredSentences', () => {
+  test('Happy path', () => {
+    const content = fs.readFileSync(PROTOCOLS_FILE, 'utf-8')
+    const { protocols } = readProtocolsString(content)
     const sentences = getStoreSentences({ protocols })
     Object.keys(EXPECTED_STORED_SENTECES).forEach(key => {
     // sentences.forEach((value, key) => {

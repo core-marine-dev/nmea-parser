@@ -1,7 +1,7 @@
 import { getChecksum, numberChecksumToString, stringChecksumToNumber } from "./checksum";
 import { CHECKSUM_LENGTH, DELIMITER, END_FLAG_LENGTH, MINIMAL_LENGTH, SEPARATOR, START_FLAG, START_FLAG_LENGTH } from "./constants";
 import { NMEALikeSchema, NMEAUknownSentenceSchema, NMEAUnparsedSentenceSchema } from "./schemas";
-import { Data, FieldType, NMEALike, NMEAPreParsed, NMEAUknownSentence, NMEAUnparsedSentence, StoredSentence } from "./types";
+import { Data, FieldType, FieldUnknown, NMEALike, NMEAPreParsed, NMEAUknownSentence, NMEAUnparsedSentence, StoredSentence } from "./types";
 import { isLowerCharASCII, isNumberCharASCII, isUpperCharASCII } from "./utils";
 // GET NMEA SENTENCE
 export const isNMEAFrame = (text: string): boolean => {
@@ -46,14 +46,15 @@ export const isNMEAFrame = (text: string): boolean => {
 export const getNMEAUnparsedSentence = (text: string): NMEAUnparsedSentence | null => {
   if (!isNMEAFrame(text)) return null
   const raw = text
-  const [data, cs] = raw.slice(1, -END_FLAG_LENGTH).split(DELIMITER)
+  const [info, cs] = raw.slice(1, -END_FLAG_LENGTH).split(DELIMITER)
   const checksum = stringChecksumToNumber(cs)
-  const [sentence, ...fields] = data.split(SEPARATOR)
-  return NMEAUnparsedSentenceSchema.parse({ raw, sentence, checksum, fields })
+  const [sentence, ...data] = info.split(SEPARATOR)
+  return NMEAUnparsedSentenceSchema.parse({ raw, sentence, checksum, data })
 }
 
 export const getUnknownSentence = (sentence: NMEAPreParsed): NMEAUknownSentence => {
-  const unknowFrame = {...sentence, protocol: { name: 'UNKNOWN' } }
+  const fields: FieldUnknown[] = sentence.data.map(value => ({ name: 'unknown', type: 'string', data: value }))
+  const unknowFrame = {...sentence, protocol: { name: 'UNKNOWN' }, fields }
   const parsed = NMEAUknownSentenceSchema.safeParse(unknowFrame)
   if (parsed.success) return parsed.data
   throw new Error(parsed.error.message)

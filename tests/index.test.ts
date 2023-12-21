@@ -1,12 +1,12 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { describe, test, expect } from 'vitest'
-import { Parser } from '../src/parser'
+import Parser from '../src'
 import { generateSentence } from '../src/sentences'
 import { NMEAKnownSentenceSchema, NMEAUknownSentenceSchema } from '../src/schemas'
 import { DELIMITER, END_FLAG, END_FLAG_LENGTH, SEPARATOR, START_FLAG_LENGTH } from '../src/constants'
 import { getChecksum, numberChecksumToString } from '../src/checksum'
-import { readProtocolsFile, readProtocolsString } from '../src/protocols'
+import { readProtocolsFile } from '../src/protocols'
 import { Protocol, ProtocolsFile } from '../src/types'
 
 const NORSUB_FILE = path.join(__dirname, 'norsub.yaml')

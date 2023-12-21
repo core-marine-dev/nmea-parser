@@ -5,12 +5,13 @@ import {
   VersionSchema, JSONSchemaInputSchema,
   StoredSentenceSchema, StoredSentencesSchema,
   NMEALikeSchema, NMEAUnparsedSentenceSchema, NMEAPreParsedSentenceSchema,
-  DataSchema, FieldParsedSchema, NMEASentenceSchema, NMEAUknownSentenceSchema, NMEAKnownSentenceSchema, ProtocolsInputSchema,
+  DataSchema, FieldParsedSchema, NMEASentenceSchema, NMEAUknownSentenceSchema, NMEAKnownSentenceSchema, ProtocolsInputSchema, FieldUnknownSchema,
 } from './schemas'
 
 // PROTOCOLS
 export type FieldType = z.infer<typeof FieldTypeSchema>
 export type Field = z.infer<typeof FieldSchema>
+export type FieldUnknown = z.infer<typeof FieldUnknownSchema>
 export type ProtocolSentence = z.infer<typeof ProtocolSentenceSchema>
 export type Version = z.infer<typeof VersionSchema>
 export type Protocol = z.infer<typeof ProtocolSchema>
