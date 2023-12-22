@@ -1,6 +1,6 @@
 import { readdirSync } from 'node:fs'
 import Path from 'node:path'
-import { END_FLAG, END_FLAG_LENGTH, MAX_CHARACTERS, START_FLAG, START_FLAG_LENGTH } from "./constants";
+import { END_FLAG, END_FLAG_LENGTH, MAX_CHARACTERS, NMEA_ID_LENGTH, START_FLAG, START_FLAG_LENGTH, TALKERS, TALKERS_SPECIAL } from "./constants";
 import { BooleanSchema, NMEALikeSchema, NaturalSchema, ProtocolsInputSchema, StringSchema } from "./schemas";
 import { Data, FieldType, FieldUnknown, NMEAKnownSentence, NMEAParser, NMEAPreParsed, NMEASentence, NMEAUknownSentence, ParserSentences, ProtocolsFile, ProtocolsInput, StoredSentence, StoredSentences } from "./types";
 import { getStoreSentences, readProtocolsFile, readProtocolsString } from './protocols';
@@ -111,22 +111,52 @@ export class Parser implements NMEAParser {
       return null
     }
     try {
-      const knownSentence: NMEAKnownSentence = {...preparsed, ...storedSentence, data: [] } as NMEAKnownSentence
+      const knownSentence = {...preparsed, ...storedSentence, data: [] as Data[] }
       preparsed.data.forEach((value, index) => {
         const type = knownSentence.fields[index].type
         const data = this.getField(value, type)
+        // @ts-ignore
         knownSentence.fields[index].data = data
         knownSentence.data.push(data)
       })
+      // @ts-ignore
       return knownSentence
     } catch (error) {
       if (error instanceof Error) {
         console.debug(`Invalid NMEA Frame ${preparsed.sentence} -> ${preparsed.raw}\n\t${error.message}`)
       } else {
+        console.error('Parser.getKnownFrame')
         console.error(error)
       }
     }
     return null
+  }
+
+  private getSpecialTalker(id: string): string {
+    if (id.startsWith('U') && id.length === 2 && !isNaN(Number(id[1]))) {
+      return TALKERS_SPECIAL['U']
+    }
+    if (id.startsWith('P')) {
+      return TALKERS_SPECIAL['P']
+    }
+    return 'unknown'
+  }
+
+  private getKnownTalkerFrame(preparsed: NMEAPreParsed): NMEAKnownSentence | null {
+    const { sentence: aux } = preparsed
+    // Not valid NMEA sentence ID length
+    if (aux.length < NMEA_ID_LENGTH) { return null }
+    const [id, sentence] = [aux.slice(0, aux.length - NMEA_ID_LENGTH), aux.slice(- NMEA_ID_LENGTH)]
+    // Unknown NMEA frame
+    if (!this._sentences.has(sentence)) { return null }
+    // Knowing the frame
+    const knownSentence = this.getKnownFrame({ ...preparsed, sentence })
+    if (knownSentence === null) { return null }
+    if (knownSentence.data.length !== preparsed.data.length) { return null }
+    // Knowing the talker
+    const desc = TALKERS.get(id)
+    const description = desc ?? this.getSpecialTalker(id)
+    return { ...knownSentence, talker: { id, description } } 
   }
 
   private getFrame(text: string, timestamp: number): NMEASentence | null {
@@ -136,14 +166,19 @@ export class Parser implements NMEAParser {
       console.debug(`Invalid NMEA frame -> ${text}}`)
       return null
     }
-    const preparsedSentence: NMEAPreParsed = { timestamp, ...unparsedSentence }
-    // Unknown NMEA sentence
-    if (!this._sentences.has(preparsedSentence.sentence)) {
-      console.debug(`Unknown NMEA sentence -> ${text}`)
-      return this.getUnknowFrame(preparsedSentence)
-    }
+    const preparsedSentence: NMEAPreParsed = { ...unparsedSentence, timestamp, talker: null }
     // Known NMEA sentence
-    return this.getKnownFrame(preparsedSentence)
+    if (this._sentences.has(preparsedSentence.sentence)) {
+      const sentence = this.getKnownFrame(preparsedSentence)
+      if (sentence !== null) return sentence
+    // Probably known sentence by talker ID
+    } else {
+      const sentence = this.getKnownTalkerFrame(preparsedSentence)
+      if (sentence !== null) return sentence
+    }
+    // Unknown NMEA sentence
+    console.debug(`Unknown NMEA sentence -> ${text}`)
+    return this.getUnknowFrame(preparsedSentence)
   }
 
   private getFrames(text: string): NMEASentence[] {
