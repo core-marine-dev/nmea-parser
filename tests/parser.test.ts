@@ -2,12 +2,11 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, test, expect } from 'vitest'
 import { Parser } from '../src/parser'
-import { generateSentence } from '../src/sentences'
-import { NMEAKnownSentenceSchema, NMEAUknownSentenceSchema } from '../src/schemas'
-import { DELIMITER, END_FLAG, END_FLAG_LENGTH, SEPARATOR, START_FLAG_LENGTH } from '../src/constants'
-import { getChecksum, numberChecksumToString } from '../src/checksum'
-import { readProtocolsFile, readProtocolsString } from '../src/protocols'
-import { Protocol, ProtocolsFile } from '../src/types'
+import { generateSentence, getFakeSentece } from '../src/sentences'
+import { NMEAKnownSentenceSchema, NMEASentenceSchema, NMEAUknownSentenceSchema } from '../src/schemas'
+import { TALKERS, TALKERS_SPECIAL } from '../src/constants'
+import { readProtocolsFile } from '../src/protocols'
+import { Protocol } from '../src/types'
 
 const NORSUB_FILE = path.join(__dirname, 'norsub.yaml')
 
@@ -21,7 +20,7 @@ describe('Parser', () => {
     const expectedSentences = ['AAM', 'GGA']
     expectedSentences.forEach(sentence => expect(Object.keys(parserSentences).includes(sentence)).toBeTruthy())
   })
-  
+
   test('Add protocols with file', () => {
     const file = NORSUB_FILE
     const parser = new Parser()
@@ -53,7 +52,7 @@ describe('Parser', () => {
       expect(result).toBeTruthy()
     })
   })
-  
+
   test('Add protocols with content', () => {
     const content = fs.readFileSync(NORSUB_FILE, 'utf-8')
     const parser = new Parser()
@@ -85,7 +84,7 @@ describe('Parser', () => {
       expect(result).toBeTruthy()
     })
   })
-  
+
   test('Add protocols with protocols', () => {
     const { protocols } = readProtocolsFile(NORSUB_FILE)
     const parser = new Parser()
@@ -142,6 +141,74 @@ describe('Parser', () => {
     })
   })
 
+  test('Parsing sentences with known regular talkers', () => {
+    const parser = new Parser()
+    const storedSentences = parser.getSentences()
+    const aam = storedSentences['AAM']
+    const gga = storedSentences['GGA']
+    const inputAAM = getFakeSentece(generateSentence(aam), 'GPAAM')
+    const inputGGA = getFakeSentece(generateSentence(gga), 'GAGGA');
+    const input = inputAAM + inputGGA
+    const output = parser.parseData(input);
+    // Known talker
+    ['GP', 'GA'].forEach((id, index) => {
+      const parse = NMEASentenceSchema.safeParse(output[index])
+      if (!parse.success) { console.error(parse.error ) }
+      expect(parse.success).toBeTruthy()
+      // @ts-ignore
+      const { data } = parse
+      expect(data.talker).toEqual({ id, description: TALKERS.get(id)})
+    })
+  })
+
+  test('Parsing sentences with known special talkers', () => {
+    const parser = new Parser()
+    const storedSentences = parser.getSentences()
+    const talkerU = 'U8'
+    const talkerP = 'PASDF'
+    const aam = storedSentences['AAM']
+    const gga = storedSentences['GGA']
+    const inputAAM = getFakeSentece(generateSentence(aam), talkerU + 'AAM')
+    const inputGGA = getFakeSentece(generateSentence(gga), talkerP + 'GGA');
+    const input = inputAAM + inputGGA
+    const output = parser.parseData(input);
+    expect(output).toHaveLength(2)
+    output.forEach(out => {
+      const parse = NMEASentenceSchema.safeParse(out)
+      if (!parse.success) { console.error(parse.error ) }
+      expect(parse.success).toBeTruthy()
+    })
+    // Known special talker
+    const [outputU, outputP] = [output[0].talker, output[1].talker]
+    // @ts-ignore
+    expect(outputU).toEqual({ id: talkerU, description: TALKERS_SPECIAL['U']})
+    expect(outputP).toEqual({ id: talkerP, description: TALKERS_SPECIAL['P']})
+  })
+
+  test('Parsing sentences with unknown talkers', () => {
+    const parser = new Parser()
+    const storedSentences = parser.getSentences()
+    const talkerXX = 'XX'
+    const talkerUU = 'UU'
+    const aam = storedSentences['AAM']
+    const gga = storedSentences['GGA']
+    const inputAAM = getFakeSentece(generateSentence(aam), talkerXX + 'AAM')
+    const inputGGA = getFakeSentece(generateSentence(gga), talkerUU + 'GGA');
+    const input = inputAAM + inputGGA
+    const output = parser.parseData(input);
+    expect(output).toHaveLength(2)
+    output.forEach(out => {
+      const parse = NMEASentenceSchema.safeParse(out)
+      if (!parse.success) { console.error(parse.error ) }
+      expect(parse.success).toBeTruthy()
+    })
+    // Known special talker
+    const [outputU, outputP] = [output[0].talker, output[1].talker]
+    // @ts-ignore
+    expect(outputU).toEqual({ id: talkerXX, description: 'unknown'})
+    expect(outputP).toEqual({ id: talkerUU, description: 'unknown'})
+  })
+
   test('Uncompleted frames WITHOUT memory', () => {
     const parser = new Parser()
     const storedSentences = parser.getSentences()
@@ -185,14 +252,6 @@ describe('Parser', () => {
   })
 
   test('Unknown frames', () => {
-    const getFakeSentece = (text: string, sentence: string): string => {
-      const [frame, _cs] = text.slice(START_FLAG_LENGTH, -END_FLAG_LENGTH).split(DELIMITER)
-      const [_emitter, ...info] = frame.split(SEPARATOR)
-      const newFrame = [sentence, ...info].join(SEPARATOR)
-      const checksum = numberChecksumToString(getChecksum(newFrame))
-      return `$${newFrame}${DELIMITER}${checksum}${END_FLAG}`
-    }
-
     const parser = new Parser()
     const storedSentences = parser.getSentences()
     const aam = storedSentences['AAM']

@@ -1,5 +1,5 @@
 import { getChecksum, numberChecksumToString, stringChecksumToNumber } from "./checksum";
-import { CHECKSUM_LENGTH, DELIMITER, END_FLAG_LENGTH, MINIMAL_LENGTH, SEPARATOR, START_FLAG, START_FLAG_LENGTH } from "./constants";
+import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, END_FLAG_LENGTH, MINIMAL_LENGTH, SEPARATOR, START_FLAG, START_FLAG_LENGTH } from "./constants";
 import { NMEALikeSchema, NMEAUknownSentenceSchema, NMEAUnparsedSentenceSchema } from "./schemas";
 import { Data, FieldType, FieldUnknown, NMEALike, NMEAPreParsed, NMEAUknownSentence, NMEAUnparsedSentence, StoredSentence } from "./types";
 import { isLowerCharASCII, isNumberCharASCII, isUpperCharASCII } from "./utils";
@@ -141,4 +141,12 @@ export const generateSentence = (model: StoredSentence): NMEALike => {
   const checksum = numberChecksumToString(cs)
   sentence += `*${checksum}\r\n`
   return sentence
+}
+
+export const getFakeSentece = (text: string, sentence: string): string => {
+  const [frame, _cs] = text.slice(START_FLAG_LENGTH, -END_FLAG_LENGTH).split(DELIMITER)
+  const [_emitter, ...info] = frame.split(SEPARATOR)
+  const newFrame = [sentence, ...info].join(SEPARATOR)
+  const checksum = numberChecksumToString(getChecksum(newFrame))
+  return `$${newFrame}${DELIMITER}${checksum}${END_FLAG}`
 }

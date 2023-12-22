@@ -108,6 +108,11 @@ export const NMEALikeSchema = StringSchema
   .includes(DELIMITER)
   .endsWith(END_FLAG)
 
+export const TalkerSchema = z.object({
+  id: StringSchema,
+  description: StringSchema,
+})
+
 export const NMEAUnparsedSentenceSchema = z.object({
   raw: StringSchema,
   sentence: StringSchema,
@@ -115,9 +120,13 @@ export const NMEAUnparsedSentenceSchema = z.object({
   data: StringArraySchema
 })
 
-export const NMEAPreParsedSentenceSchema = NMEAUnparsedSentenceSchema.extend({ timestamp: NaturalSchema })
 
-export const DataSchema = z.union([StringSchema, NumberSchema, BooleanSchema]).nullish()
+export const NMEAPreParsedSentenceSchema = NMEAUnparsedSentenceSchema.extend({
+  timestamp: NaturalSchema,
+  talker: TalkerSchema.nullable().default(null)
+})
+
+export const DataSchema = z.union([StringSchema, NumberSchema, BooleanSchema]).nullable()
 
 export const FieldParsedSchema = FieldSchema.extend({
   data: DataSchema
@@ -133,8 +142,10 @@ export const NMEAUknownSentenceSchema = NMEAPreParsedSentenceSchema.extend({
   fields: z.array(FieldUnknownSchema),
 })
 
+
 export const NMEAKnownSentenceSchema = StoredSentenceDataSchema.extend({
   timestamp: NaturalSchema,
+  talker: TalkerSchema.nullable().default(null),
   checksum: NumberSchema,
   fields: z.array(FieldParsedSchema),
   data: z.array(DataSchema)
