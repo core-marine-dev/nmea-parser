@@ -70,6 +70,8 @@ type NMEASentence = {
   raw: string,
   // Sentence checksum
   checksum: number
+  // Sentence talker
+  talker: null | { id: string, description: string }
 }
 ```
 
@@ -93,7 +95,7 @@ You can enable or disable memory in the parser. Why?
 - You just enters string in slots so a frame could be splitted into string slots
 - With memory the parser remember the last half frame
 - So you can finally parse with the next string input
-
+****
 ## Feeding the parser (adding known sentences)
 
 One of the greatest features of the parser is you can expand with more NMEA-like sentences. Standard or propietary sentences, it doesn't mind.
@@ -261,35 +263,35 @@ protocols:
           # 14
           - name: reference_station_id
             type: float64
-            note: "	Reference station ID, range 0000 to 4095. A null field when any reference station ID is selected and no corrections are received. See table below for a description of the field values.\n
+            note: "Reference station ID, range 0000 to 4095. A null field when any reference station ID is selected and no corrections are received. See table below for a description of the field values.\n
 
-              0002	CenterPoint or ViewPoint RTX\n
+              0002 CenterPoint or ViewPoint RTX\n
 
-              0005	RangePoint RTX\n
+              0005 RangePoint RTX\n
 
-              0006	FieldPoint RTX\n
+              0006 FieldPoint RTX\n
 
-              0100	VBS\n
+              0100 VBS\n
 
-              1000	HP\n
+              1000 HP\n
 
-              1001	HP/XP (Orbits)\n
+              1001 HP/XP (Orbits)\n
 
-              1002	HP/G2 (Orbits)\n
+              1002 HP/G2 (Orbits)\n
               
-              1008	XP (GPS)\n
+              1008 XP (GPS)\n
               
-              1012	G2 (GPS)\n
+              1012 G2 (GPS)\n
               
-              1013	G2 (GPS/GLONASS)\n
+              1013 G2 (GPS/GLONASS)\n
               
-              1014	G2 (GLONASS)\n
+              1014 G2 (GLONASS)\n
               
-              1016	HP/XP (GPS)\n
+              1016 HP/XP (GPS)\n
               
-              1020	HP/G2 (GPS)\n
+              1020 HP/G2 (GPS)\n
               
-              1021	HP/G2 (GPS/GLONASS)"
+              1021 HP/G2 (GPS/GLONASS)"
 
   # Propietary GYROCOMPAS1
   - protocol: GYROCOMPAS1
