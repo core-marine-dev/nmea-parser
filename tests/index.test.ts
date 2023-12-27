@@ -208,4 +208,33 @@ describe('Parser', () => {
       expect(parsed.success).toBeTruthy()
     })
   })
+
+  test('Sentence info', () => {
+    const parser = new Parser()
+    // Known frame
+    let sentence = parser.getSentence('AAM')
+    expect(sentence?.protocol.name).toBe('NMEA')
+    expect(sentence?.protocol.standard).toBeTruthy()
+    expect(sentence?.talker).toBeUndefined()
+    // Known talker
+    sentence = parser.getSentence('GPAAM')
+    expect(sentence?.protocol.name).toBe('NMEA')
+    expect(sentence?.protocol.standard).toBeTruthy()
+    expect(sentence?.talker?.id).toBe('GP')
+    // Known special talker
+    sentence = parser.getSentence('U8AAM')
+    expect(sentence?.protocol.name).toBe('NMEA')
+    expect(sentence?.protocol.standard).toBeTruthy()
+    expect(sentence?.talker?.id).toBe('U8')
+    sentence = parser.getSentence('PdfgsdfAAM')
+    expect(sentence?.protocol.name).toBe('NMEA')
+    expect(sentence?.protocol.standard).toBeTruthy()
+    expect(sentence?.talker?.id).toBe('Pdfgsdf')
+    // Unknown talker
+    sentence = parser.getSentence('XXAAM')
+    expect(sentence?.protocol.name).toBe('NMEA')
+    expect(sentence?.protocol.standard).toBeTruthy()
+    expect(sentence?.talker?.id).toBe('XX')
+    expect(sentence?.talker?.description).toBe('unknown')
+  })
 })

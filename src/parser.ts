@@ -1,10 +1,11 @@
 import { readdirSync } from 'node:fs'
 import Path from 'node:path'
-import { END_FLAG, END_FLAG_LENGTH, MAX_CHARACTERS, NMEA_ID_LENGTH, START_FLAG, START_FLAG_LENGTH, TALKERS, TALKERS_SPECIAL } from "./constants";
+import { END_FLAG, END_FLAG_LENGTH, MAX_CHARACTERS, NMEA_ID_LENGTH, START_FLAG, START_FLAG_LENGTH } from "./constants";
 import { BooleanSchema, NMEALikeSchema, NaturalSchema, ProtocolsInputSchema, StringSchema } from "./schemas";
 import { Data, FieldType, FieldUnknown, NMEAKnownSentence, NMEAParser, NMEAPreParsed, NMEASentence, NMEAUknownSentence, ParserSentences, ProtocolOutput, ProtocolsFile, ProtocolsInput, Sentence, StoredSentence, StoredSentences } from "./types";
 import { getSentencesByProtocol, getStoreSentences, readProtocolsFile, readProtocolsString } from './protocols';
 import { getNMEAUnparsedSentence } from './sentences';
+import { getTalker } from './utils';
 
 
 export class Parser implements NMEAParser {
@@ -48,7 +49,14 @@ export class Parser implements NMEAParser {
   }
 
   getSentence(id: string): Sentence {
-    return this._sentences.get(id) ?? null
+    if (!StringSchema.safeParse(id).success || id.length < NMEA_ID_LENGTH) { return null }
+    const aux = this._sentences.get(id) ?? null
+    if (aux !== null) { return aux }
+    const [talk, sent] = [id.slice(0, id.length - NMEA_ID_LENGTH), id.slice(- NMEA_ID_LENGTH)]
+    const sentence = this._sentences.get(sent)
+    if (sentence === undefined) { return null }
+    const talker = getTalker(talk)
+    return { ...sentence, talker }
   }
 
   addProtocols(input: ProtocolsInput): void {
@@ -66,6 +74,7 @@ export class Parser implements NMEAParser {
   }
 
   getSentences(): ParserSentences {
+
     return Object.fromEntries(this._sentences.entries())
   }
 
@@ -128,16 +137,6 @@ export class Parser implements NMEAParser {
     return null
   }
 
-  private getSpecialTalker(id: string): string {
-    if (id.startsWith('U') && id.length === 2 && !isNaN(Number(id[1]))) {
-      return TALKERS_SPECIAL['U']
-    }
-    if (id.startsWith('P')) {
-      return TALKERS_SPECIAL['P']
-    }
-    return 'unknown'
-  }
-
   private getKnownTalkerFrame(preparsed: NMEAPreParsed): NMEAKnownSentence | null {
     const { sentence: aux } = preparsed
     // Not valid NMEA sentence ID length
@@ -150,9 +149,8 @@ export class Parser implements NMEAParser {
     if (knownSentence === null) { return null }
     if (knownSentence.data.length !== preparsed.data.length) { return null }
     // Knowing the talker
-    const desc = TALKERS.get(id)
-    const description = desc ?? this.getSpecialTalker(id)
-    return { ...knownSentence, talker: { id, description } } 
+    const talker = getTalker(id)
+    return { ...knownSentence, talker } 
   }
 
   private getFrame(text: string, timestamp: number): NMEASentence | null {

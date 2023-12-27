@@ -152,3 +152,7 @@ export const NMEAKnownSentenceSchema = StoredSentenceDataSchema.extend({
 })
 
 export const NMEASentenceSchema = z.union([NMEAKnownSentenceSchema, NMEAUknownSentenceSchema])
+
+export const OutputSentenceSchema = StoredSentenceSchema.extend({
+  talker: TalkerSchema.optional()
+})
