@@ -18,6 +18,7 @@ export type Protocol = z.infer<typeof ProtocolSchema>
 export type ProtocolsFile = z.infer<typeof ProtocolsFileSchema>
 export type StoredSentence = z.infer<typeof StoredSentenceSchema>
 export type StoredSentences = z.infer<typeof StoredSentencesSchema>
+export type Sentence = null | StoredSentence
 export type ParserSentences = Record<string, StoredSentence>
 // JSON Schema
 export type JSONSchemaInput = z.infer<typeof JSONSchemaInputSchema>
@@ -32,10 +33,14 @@ export type NMEAKnownSentence = z.infer<typeof NMEAKnownSentenceSchema>
 export type NMEASentence = z.infer<typeof NMEASentenceSchema>
 // PARSER
 export type ProtocolsInput = z.infer<typeof ProtocolsInputSchema>
-
+export type ProtocolOutput = {
+  protocol: string,
+  version?: string,
+  sentences: string[]
+}
 export interface NMEAParser {
-  addProtocols(protocols: ProtocolsInput): void,
-  getProtocols(): string[],
-  getSentences(): ParserSentences,
   parseData(data: string): any[],
+  addProtocols(protocols: ProtocolsInput): void,
+  getProtocols(): ProtocolOutput[],
+  getSentence(id: string): Sentence,
 }

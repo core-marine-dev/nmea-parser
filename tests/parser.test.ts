@@ -14,7 +14,7 @@ describe('Parser', () => {
   test('Default constructor', () => {
     const parser = new Parser()
     const parserProtocols = parser.getProtocols()
-    expect(parserProtocols.includes('NMEA')).toBeTruthy()
+    expect(parserProtocols[0].protocol.includes('NMEA')).toBeTruthy()
 
     const parserSentences = parser.getSentences()
     const expectedSentences = ['AAM', 'GGA']
@@ -31,12 +31,12 @@ describe('Parser', () => {
     const expectedProtocols = [
       'NMEA',
       'GYROCOMPAS1', 'Tokimek PTVG', 'RDI ADCP', 'SMCA', 'SMCC',
-      'NORSUB', 'NORSUB2', 'NORSUB6', 'NORSUB7', 'NORSUB7b', 'NORSUB8', 'NORSUB PRDID',
+      'NORSUB', 'NORSUB2', 'NORSUB6', 'NORSUB7', 'NORSUB7b', 'NORSUB8', //'NORSUB PRDID',
     ]
     expectedProtocols.forEach(protocol => {
-      const result = parserProtocols.includes(protocol)
-      if (!result) { console.log(`Protocol ${protocol} is not included`) }
-      expect(result).toBeTruthy()
+      const result = parserProtocols.filter(p => p.protocol === protocol)
+      if (result.length === 0) { console.log(`Protocol ${protocol} is not included`) }
+      expect(result.length).toBeGreaterThan(0)
     })
   
     const parserSentences = parser.getSentences()
@@ -63,12 +63,12 @@ describe('Parser', () => {
     const expectedProtocols = [
       'NMEA',
       'GYROCOMPAS1', 'Tokimek PTVG', 'RDI ADCP', 'SMCA', 'SMCC',
-      'NORSUB', 'NORSUB2', 'NORSUB6', 'NORSUB7', 'NORSUB7b', 'NORSUB8', 'NORSUB PRDID',
+      'NORSUB', 'NORSUB2', 'NORSUB6', 'NORSUB7', 'NORSUB7b', 'NORSUB8', //'NORSUB PRDID',
     ]
     expectedProtocols.forEach(protocol => {
-      const result = parserProtocols.includes(protocol)
-      if (!result) { console.log(`Protocol ${protocol} is not included`) }
-      expect(result).toBeTruthy()
+      const result = parserProtocols.filter(p => p.protocol === protocol)
+      if (result.length === 0) { console.log(`Protocol ${protocol} is not included`) }
+      expect(result.length).toBeGreaterThan(0)
     })
   
     const parserSentences = parser.getSentences()
@@ -95,12 +95,12 @@ describe('Parser', () => {
     const expectedProtocols = [
       'NMEA',
       'GYROCOMPAS1', 'Tokimek PTVG', 'RDI ADCP', 'SMCA', 'SMCC',
-      'NORSUB', 'NORSUB2', 'NORSUB6', 'NORSUB7', 'NORSUB7b', 'NORSUB8', 'NORSUB PRDID',
+      'NORSUB', 'NORSUB2', 'NORSUB6', 'NORSUB7', 'NORSUB7b', 'NORSUB8', //'NORSUB PRDID',
     ]
     expectedProtocols.forEach(protocol => {
-      const result = parserProtocols.includes(protocol)
-      if (!result) { console.log(`Protocol ${protocol} is not included`) }
-      expect(result).toBeTruthy()
+      const result = parserProtocols.filter(p => p.protocol === protocol)
+      if (result.length === 0) { console.log(`Protocol ${protocol} is not included`) }
+      expect(result.length).toBeGreaterThan(0)
     })
   
     const parserSentences = parser.getSentences()

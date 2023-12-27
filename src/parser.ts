@@ -2,8 +2,8 @@ import { readdirSync } from 'node:fs'
 import Path from 'node:path'
 import { END_FLAG, END_FLAG_LENGTH, MAX_CHARACTERS, NMEA_ID_LENGTH, START_FLAG, START_FLAG_LENGTH, TALKERS, TALKERS_SPECIAL } from "./constants";
 import { BooleanSchema, NMEALikeSchema, NaturalSchema, ProtocolsInputSchema, StringSchema } from "./schemas";
-import { Data, FieldType, FieldUnknown, NMEAKnownSentence, NMEAParser, NMEAPreParsed, NMEASentence, NMEAUknownSentence, ParserSentences, ProtocolsFile, ProtocolsInput, StoredSentence, StoredSentences } from "./types";
-import { getStoreSentences, readProtocolsFile, readProtocolsString } from './protocols';
+import { Data, FieldType, FieldUnknown, NMEAKnownSentence, NMEAParser, NMEAPreParsed, NMEASentence, NMEAUknownSentence, ParserSentences, ProtocolOutput, ProtocolsFile, ProtocolsInput, Sentence, StoredSentence, StoredSentences } from "./types";
+import { getSentencesByProtocol, getStoreSentences, readProtocolsFile, readProtocolsString } from './protocols';
 import { getNMEAUnparsedSentence } from './sentences';
 
 
@@ -16,9 +16,6 @@ export class Parser implements NMEAParser {
   protected _bufferLength: number = MAX_CHARACTERS
   get bufferLimit() { return this._bufferLength }
   set bufferLimit(limit: number) { this._bufferLength = NaturalSchema.parse(limit) }
-  // Protocols
-  protected _protocols: string[] = []
-  // get protocols() { return this._protocols }
   // Sentences
   protected _sentences: StoredSentences = new Map()
   // get sentences() { return this._sentences }
@@ -46,7 +43,13 @@ export class Parser implements NMEAParser {
     throw new Error('Invalid protocols to add')
   }
 
-  getProtocols(): string[] { return this._protocols }
+  getProtocols(): ProtocolOutput[] {
+    return getSentencesByProtocol(this._sentences)
+  }
+
+  getSentence(id: string): Sentence {
+    return this._sentences.get(id) ?? null
+  }
 
   addProtocols(input: ProtocolsInput): void {
     const parsed = ProtocolsInputSchema.safeParse(input)
@@ -56,13 +59,6 @@ export class Parser implements NMEAParser {
       throw error
     }
     const { protocols } = this.readProtocols(input)
-    // Add to known protocols
-    protocols.forEach(protocol => {
-      const protocolName = protocol.protocol
-      if (!this._protocols.includes(protocolName)) {
-        this._protocols.push(protocolName)
-      }
-    })
     // Get sentences for new protocols
     const sentences = getStoreSentences({ protocols })
     // Add to known sentences
@@ -87,13 +83,13 @@ export class Parser implements NMEAParser {
       case 'number': {
         const number = parseFloat(value)
         if (!Number.isNaN(number)) return number
-        throw new Error(`invalid float number -> ${value}} it is not an ${type}`)
+        throw new Error(`invalid float number -> ${value} it is not an ${type}`)
       }
     }
 
     const number = parseInt(value)
     if (Number.isInteger(number)) return number
-    throw new Error(`invalid integer -> ${value}} it is not an ${type}`)
+    throw new Error(`invalid integer -> ${value} it is not an ${type}`)
   }
 
   private getUnknowFrame(sentence: NMEAPreParsed): NMEAUknownSentence {
@@ -163,7 +159,7 @@ export class Parser implements NMEAParser {
     const unparsedSentence = getNMEAUnparsedSentence(text)
     // Not valid NMEA sentence
     if (unparsedSentence === null) {
-      console.debug(`Invalid NMEA frame -> ${text}}`)
+      console.debug(`Invalid NMEA frame -> ${text}`)
       return null
     }
     const preparsedSentence: NMEAPreParsed = { ...unparsedSentence, timestamp, talker: null }
