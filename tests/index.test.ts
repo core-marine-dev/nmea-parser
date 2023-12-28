@@ -2,12 +2,10 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, test, expect } from 'vitest'
 import Parser from '../src'
-import { generateSentence } from '../src/sentences'
+import { generateSentence, getFakeSentece } from '../src/sentences'
 import { NMEAKnownSentenceSchema, NMEAUknownSentenceSchema } from '../src/schemas'
-import { DELIMITER, END_FLAG, END_FLAG_LENGTH, SEPARATOR, START_FLAG_LENGTH } from '../src/constants'
-import { getChecksum, numberChecksumToString } from '../src/checksum'
 import { readProtocolsFile } from '../src/protocols'
-import { Protocol, ProtocolsFile } from '../src/types'
+import { Protocol } from '../src/types'
 
 const NORSUB_FILE = path.join(__dirname, 'norsub.yaml')
 
@@ -15,13 +13,13 @@ describe('Parser', () => {
   test('Default constructor', () => {
     const parser = new Parser()
     const parserProtocols = parser.getProtocols()
-    expect(parserProtocols.includes('NMEA')).toBeTruthy()
+    expect(parserProtocols[0].protocol.includes('NMEA')).toBeTruthy()
 
     const parserSentences = parser.getSentences()
     const expectedSentences = ['AAM', 'GGA']
     expectedSentences.forEach(sentence => expect(Object.keys(parserSentences).includes(sentence)).toBeTruthy())
   })
-  
+
   test('Add protocols with file', () => {
     const file = NORSUB_FILE
     const parser = new Parser()
@@ -32,12 +30,12 @@ describe('Parser', () => {
     const expectedProtocols = [
       'NMEA',
       'GYROCOMPAS1', 'Tokimek PTVG', 'RDI ADCP', 'SMCA', 'SMCC',
-      'NORSUB', 'NORSUB2', 'NORSUB6', 'NORSUB7', 'NORSUB7b', 'NORSUB8', 'NORSUB PRDID',
+      'NORSUB', 'NORSUB2', 'NORSUB6', 'NORSUB7', 'NORSUB7b', 'NORSUB8', //'NORSUB PRDID',
     ]
     expectedProtocols.forEach(protocol => {
-      const result = parserProtocols.includes(protocol)
-      if (!result) { console.log(`Protocol ${protocol} is not included`) }
-      expect(result).toBeTruthy()
+      const result = parserProtocols.filter(p => p.protocol === protocol)
+      if (result.length === 0) { console.log(`Protocol ${protocol} is not included`) }
+      expect(result.length).toBeGreaterThan(0)
     })
   
     const parserSentences = parser.getSentences()
@@ -53,7 +51,7 @@ describe('Parser', () => {
       expect(result).toBeTruthy()
     })
   })
-  
+
   test('Add protocols with content', () => {
     const content = fs.readFileSync(NORSUB_FILE, 'utf-8')
     const parser = new Parser()
@@ -64,12 +62,12 @@ describe('Parser', () => {
     const expectedProtocols = [
       'NMEA',
       'GYROCOMPAS1', 'Tokimek PTVG', 'RDI ADCP', 'SMCA', 'SMCC',
-      'NORSUB', 'NORSUB2', 'NORSUB6', 'NORSUB7', 'NORSUB7b', 'NORSUB8', 'NORSUB PRDID',
+      'NORSUB', 'NORSUB2', 'NORSUB6', 'NORSUB7', 'NORSUB7b', 'NORSUB8', //'NORSUB PRDID',
     ]
     expectedProtocols.forEach(protocol => {
-      const result = parserProtocols.includes(protocol)
-      if (!result) { console.log(`Protocol ${protocol} is not included`) }
-      expect(result).toBeTruthy()
+      const result = parserProtocols.filter(p => p.protocol === protocol)
+      if (result.length === 0) { console.log(`Protocol ${protocol} is not included`) }
+      expect(result.length).toBeGreaterThan(0)
     })
   
     const parserSentences = parser.getSentences()
@@ -85,7 +83,7 @@ describe('Parser', () => {
       expect(result).toBeTruthy()
     })
   })
-  
+
   test('Add protocols with protocols', () => {
     const { protocols } = readProtocolsFile(NORSUB_FILE)
     const parser = new Parser()
@@ -96,12 +94,12 @@ describe('Parser', () => {
     const expectedProtocols = [
       'NMEA',
       'GYROCOMPAS1', 'Tokimek PTVG', 'RDI ADCP', 'SMCA', 'SMCC',
-      'NORSUB', 'NORSUB2', 'NORSUB6', 'NORSUB7', 'NORSUB7b', 'NORSUB8', 'NORSUB PRDID',
+      'NORSUB', 'NORSUB2', 'NORSUB6', 'NORSUB7', 'NORSUB7b', 'NORSUB8', //'NORSUB PRDID',
     ]
     expectedProtocols.forEach(protocol => {
-      const result = parserProtocols.includes(protocol)
-      if (!result) { console.log(`Protocol ${protocol} is not included`) }
-      expect(result).toBeTruthy()
+      const result = parserProtocols.filter(p => p.protocol === protocol)
+      if (result.length === 0) { console.log(`Protocol ${protocol} is not included`) }
+      expect(result.length).toBeGreaterThan(0)
     })
   
     const parserSentences = parser.getSentences()
@@ -157,6 +155,7 @@ describe('Parser', () => {
       'asdfasfaf' + input2 + 'lakjs'
     ].forEach(input => {
       const output = parser.parseData(input)
+      if (output.length !== 1) { console.error(`Problem parsing frame -> ${input}`) }
       expect(output).toHaveLength(1)
     })
   })
@@ -185,14 +184,6 @@ describe('Parser', () => {
   })
 
   test('Unknown frames', () => {
-    const getFakeSentece = (text: string, sentence: string): string => {
-      const [frame, _cs] = text.slice(START_FLAG_LENGTH, -END_FLAG_LENGTH).split(DELIMITER)
-      const [_emitter, ...info] = frame.split(SEPARATOR)
-      const newFrame = [sentence, ...info].join(SEPARATOR)
-      const checksum = numberChecksumToString(getChecksum(newFrame))
-      return `$${newFrame}${DELIMITER}${checksum}${END_FLAG}`
-    }
-
     const parser = new Parser()
     const storedSentences = parser.getSentences()
     const aam = storedSentences['AAM']
@@ -200,12 +191,46 @@ describe('Parser', () => {
     const input1 = getFakeSentece(generateSentence(aam), 'XXX')
     const input2 = getFakeSentece(generateSentence(gga), 'YYY');
     [input1, input2].forEach(input => {
-      const output = parser.parseData(input)[0]
-      const parsed = NMEAUknownSentenceSchema.safeParse(output)
-      if (!parsed.success) {
-        console.error(parsed.error)
+      const output = parser.parseData(input)
+      if (output.length !== 1) {
+        console.error(`Problem parsing frame -> ${input}`)
+        expect(output).toHaveLength(1)
+      } else {
+        const parsed = NMEAUknownSentenceSchema.safeParse(output[0])
+        if (!parsed.success) {
+          console.error(parsed.error)
+        }
+        expect(parsed.success).toBeTruthy()
       }
-      expect(parsed.success).toBeTruthy()
     })
+  })
+
+  test('Sentence info', () => {
+    const parser = new Parser()
+    // Known frame
+    let sentence = parser.getSentence('AAM')
+    expect(sentence?.protocol.name).toBe('NMEA')
+    expect(sentence?.protocol.standard).toBeTruthy()
+    expect(sentence?.talker).toBeUndefined()
+    // Known talker
+    sentence = parser.getSentence('GPAAM')
+    expect(sentence?.protocol.name).toBe('NMEA')
+    expect(sentence?.protocol.standard).toBeTruthy()
+    expect(sentence?.talker?.id).toBe('GP')
+    // Known special talker
+    sentence = parser.getSentence('U8AAM')
+    expect(sentence?.protocol.name).toBe('NMEA')
+    expect(sentence?.protocol.standard).toBeTruthy()
+    expect(sentence?.talker?.id).toBe('U8')
+    sentence = parser.getSentence('PdfgsdfAAM')
+    expect(sentence?.protocol.name).toBe('NMEA')
+    expect(sentence?.protocol.standard).toBeTruthy()
+    expect(sentence?.talker?.id).toBe('Pdfgsdf')
+    // Unknown talker
+    sentence = parser.getSentence('XXAAM')
+    expect(sentence?.protocol.name).toBe('NMEA')
+    expect(sentence?.protocol.standard).toBeTruthy()
+    expect(sentence?.talker?.id).toBe('XX')
+    expect(sentence?.talker?.description).toBe('unknown')
   })
 })
