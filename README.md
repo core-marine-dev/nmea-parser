@@ -1,5 +1,9 @@
 # NMEA parser
 
+![npm (scoped)](https://img.shields.io/npm/v/%40coremarine/nmea-parser)
+[![publish](https://github.com/core-marine-dev/nmea-parser/actions/workflows/publish.yml/badge.svg)](https://github.com/core-marine-dev/nmea-parser/actions/workflows/publish.yml)
+![npm](https://img.shields.io/npm/dy/%40coremarine/nmea-parser)
+
 **NMEA Parser** is a library to parse NMEA 0183 sentences.
 
 > [NMEA](https://en.wikipedia.org/wiki/NMEA_0183) 0183, or just NMEA, is an standard ASCII text protocol typically used for GNSS (GPS) devices and naval tools.
