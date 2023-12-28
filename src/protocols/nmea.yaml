@@ -24,10 +24,10 @@ protocols:
               V = perpendicular not passed"
           # 3
           - name: arrival_circle_radius
-            type: float
+            type: float32
           # 4
           - name: radius_units
-            type: float64
+            type: string
             units: nautic miles
           # 5
           - name: waypoint_id
@@ -41,7 +41,7 @@ protocols:
             units: ms
           # 2
           - name: latitude
-            type: float
+            type: string
             units: deg
           # 3
           - name: latitude_direction
@@ -50,7 +50,7 @@ protocols:
               S: South"
           # 4
           - name: longitude
-            type: float
+            type: string
             units: deg
           # 5
           - name: longitude_direction
@@ -71,7 +71,7 @@ protocols:
               8: Simulator Mode"
           # 7
           - name: satellites
-            type: float64
+            type: uint8
           # 8
           - name: hdop
             type: float64
@@ -81,8 +81,8 @@ protocols:
             units: m
             note: "Orthometric height Mean-Sea-Level (MSL reference)"
           # 10
-          - name: altitude_meters
-            type: float64
+          - name: altitude_units
+            type: string
             units: m
           # 11
           - name: geoid_separation
@@ -90,8 +90,8 @@ protocols:
             units: m
             note: "Geoidal Separation: the difference between the WGS-84 earth ellipsoid surface and mean-sea-level (geoid) surface, \"-\" = mean-sea-level surface below WGS-84 ellipsoid surface."
           # 12
-          - name: geoid_separation_meters
-            type: float64
+          - name: geoid_separation_units
+            type: string
             units: m
           # 13
           - name: age_of_differential_gps_data
@@ -100,34 +100,71 @@ protocols:
             note: "Time in seconds since last SC104 Type 1 or 9 update, null field when DGPS is not used300"
           # 14
           - name: reference_station_id
-            type: float64
-            note: "	Reference station ID, range 0000 to 4095. A null field when any reference station ID is selected and no corrections are received. See table below for a description of the field values.\n
+            type: uint16
+            note: "Reference station ID, range 0000 to 4095. A null field when any reference station ID is selected and no corrections are received. See table below for a description of the field values.\n
 
-              0002	CenterPoint or ViewPoint RTX\n
+              0002 CenterPoint or ViewPoint RTX\n
 
-              0005	RangePoint RTX\n
+              0005 RangePoint RTX\n
 
-              0006	FieldPoint RTX\n
+              0006 FieldPoint RTX\n
 
-              0100	VBS\n
+              0100 VBS\n
 
-              1000	HP\n
+              1000 HP\n
 
-              1001	HP/XP (Orbits)\n
+              1001 HP/XP (Orbits)\n
 
-              1002	HP/G2 (Orbits)\n
+              1002 HP/G2 (Orbits)\n
               
-              1008	XP (GPS)\n
+              1008 XP (GPS)\n
               
-              1012	G2 (GPS)\n
+              1012 G2 (GPS)\n
               
-              1013	G2 (GPS/GLONASS)\n
+              1013 G2 (GPS/GLONASS)\n
               
-              1014	G2 (GLONASS)\n
+              1014 G2 (GLONASS)\n
               
-              1016	HP/XP (GPS)\n
+              1016 HP/XP (GPS)\n
               
-              1020	HP/G2 (GPS)\n
+              1020 HP/G2 (GPS)\n
               
-              1021	HP/G2 (GPS/GLONASS)"
-
+              1021 HP/G2 (GPS/GLONASS)"
+      - sentence: HDT
+        description: Heading - True
+        fields:
+          # 1
+          - name: heading
+            type: float32
+            note: "Heading, degrees True"
+          # 2
+          - name: "true"
+            type: string
+            note: "T = True"
+      - sentence: ZDA
+        description: Time & Date - UTC, day, month, year and local time zone
+        fields:
+          # 1
+          - name: utc_time
+            type: string
+            note: "UTC time (hours, minutes, seconds, may have fractional subseconds)"
+          # 2
+          - name: day
+            type: int8
+            note: "Day, 01 to 31"
+          # 3
+          - name: month
+            type: int8
+            note: "Month, 01 to 12"
+          # 4
+          - name: year
+            type: int16
+            note: "Year (4 digits)"
+          # 5
+          - name: local_zone_hours
+            type: int8
+            note: "Local zone description, 00 to +- 13 hours"
+          # 6
+          - name: local_zone_minutes
+            type: int8
+            note: "Local zone minutes description, 00 to 59, apply same sign as local hours"
