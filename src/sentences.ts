@@ -49,7 +49,11 @@ export const getNMEAUnparsedSentence = (text: string): NMEAUnparsedSentence | nu
   const [info, cs] = raw.slice(1, -END_FLAG_LENGTH).split(DELIMITER)
   const checksum = stringChecksumToNumber(cs)
   const [sentence, ...data] = info.split(SEPARATOR)
-  return NMEAUnparsedSentenceSchema.parse({ raw, sentence, checksum, data })
+  const parsed =  NMEAUnparsedSentenceSchema.safeParse({ raw, sentence, checksum, data })
+  if (parsed.success) { return parsed.data }
+  console.debug(`Error parsing sentence -> ${raw}`)
+  console.debug(parsed.error)
+  return null
 }
 
 export const getUnknownSentence = (sentence: NMEAPreParsed): NMEAUknownSentence => {
@@ -63,7 +67,7 @@ export const getUnknownSentence = (sentence: NMEAPreParsed): NMEAUknownSentence 
 // TESTING - GENERATE
 export const getNumberValue = (type: FieldType): Data => {
   const sign = ((Math.random() < 0.5) ? -1: 1)
-  const useed = Math.random() * (Number.MAX_SAFE_INTEGER - Number.MIN_SAFE_INTEGER) + Number.MIN_SAFE_INTEGER
+  const useed = Math.round( Math.random() * (Number.MAX_SAFE_INTEGER - Number.MIN_SAFE_INTEGER) + Number.MIN_SAFE_INTEGER )
   const seed = useed * sign
   const fseed = Math.random() * sign
   switch (type) {
@@ -71,30 +75,30 @@ export const getNumberValue = (type: FieldType): Data => {
     case 'char':
       return (new Uint8Array([useed]))[0]
 
-    case 'int8':
-    case 'signed char':
-      return (new Int8Array([seed]))[0]
-
     case 'uint16':
     case 'unsigned short':
       return (new Uint16Array([useed]))[0]
-
-    case 'int16':
-    case 'short':
-      return (new Int16Array([seed]))[0]
 
     case 'uint32':
     case 'unsigned int':
       return (new Uint32Array([useed]))[0]
 
+    // case 'uint64':
+    // case 'unsigned long':
+    //   return Number((new BigUint64Array([BigInt(Math.floor(seed))]))[0])
+
+    case 'int8':
+    case 'signed char':
+      return (new Int8Array([seed]))[0]
+
+    case 'int16':
+    case 'short':
+      return (new Int16Array([seed]))[0]
+
     case 'int32':
     case 'int':
       return (new Int32Array([seed]))[0]
 
-    // case 'uint64':
-    // case 'unsigned long':
-    //   return Number((new BigUint64Array([BigInt(Math.floor(seed))]))[0])
-        
     // case 'int64':
     // case 'long':
     //   return Number((new BigInt64Array([BigInt(Math.floor(seed))]))[0])
