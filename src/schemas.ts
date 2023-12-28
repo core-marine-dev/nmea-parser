@@ -6,7 +6,7 @@ export const StringArraySchema = z.array(StringSchema)
 export const BooleanSchema = z.boolean()
 export const NumberSchema = z.number()
 export const IntegerSchema = NumberSchema.int()
-export const NaturalSchema = IntegerSchema.positive()
+export const NaturalSchema = IntegerSchema.nonnegative()
 
 export const Uint8Schema = NaturalSchema.max(UINT8_MAX)
 export const Uint16Schema = NaturalSchema.max(UINT16_MAX)
@@ -146,7 +146,7 @@ export const NMEAUknownSentenceSchema = NMEAPreParsedSentenceSchema.extend({
 export const NMEAKnownSentenceSchema = StoredSentenceDataSchema.extend({
   timestamp: NaturalSchema,
   talker: TalkerSchema.nullable().default(null),
-  checksum: NumberSchema,
+  checksum: NaturalSchema,
   fields: z.array(FieldParsedSchema),
   data: z.array(DataSchema)
 })
