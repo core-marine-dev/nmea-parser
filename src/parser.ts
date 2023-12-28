@@ -63,7 +63,8 @@ export class Parser implements NMEAParser {
     const parsed = ProtocolsInputSchema.safeParse(input)
     if (!parsed.success) {
       const error = parsed.error
-      console.error(`Invalid protocols to add\n\tError = ${error}`)
+      console.error('Invalid protocols to add')
+      console.error(error)
       throw error
     }
     const { protocols } = this.readProtocols(input)
