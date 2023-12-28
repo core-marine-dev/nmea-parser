@@ -150,15 +150,18 @@ describe('Parser', () => {
     const inputGGA = getFakeSentece(generateSentence(gga), 'GAGGA');
     const input = inputAAM + inputGGA
     const output = parser.parseData(input);
-    // Known talker
-    ['GP', 'GA'].forEach((id, index) => {
-      const parse = NMEASentenceSchema.safeParse(output[index])
-      if (!parse.success) { console.error(parse.error ) }
-      expect(parse.success).toBeTruthy()
-      // @ts-ignore
-      const { data } = parse
-      expect(data.talker).toEqual({ id, description: TALKERS.get(id)})
-    })
+    expect(output).toHaveLength(2)
+    if (output.length === 2) {
+      // Known talker
+      ['GP', 'GA'].forEach((id, index) => {
+        const parse = NMEASentenceSchema.safeParse(output[index])
+        if (!parse.success) { console.error(parse.error ) }
+        expect(parse.success).toBeTruthy()
+        // @ts-ignore
+        const { data } = parse
+        expect(data.talker).toEqual({ id, description: TALKERS.get(id)})
+      })
+    }
   })
 
   test('Parsing sentences with known special talkers', () => {
@@ -172,17 +175,23 @@ describe('Parser', () => {
     const inputGGA = getFakeSentece(generateSentence(gga), talkerP + 'GGA');
     const input = inputAAM + inputGGA
     const output = parser.parseData(input);
-    expect(output).toHaveLength(2)
-    output.forEach(out => {
-      const parse = NMEASentenceSchema.safeParse(out)
-      if (!parse.success) { console.error(parse.error ) }
-      expect(parse.success).toBeTruthy()
-    })
-    // Known special talker
-    const [outputU, outputP] = [output[0].talker, output[1].talker]
-    // @ts-ignore
-    expect(outputU).toEqual({ id: talkerU, description: TALKERS_SPECIAL['U']})
-    expect(outputP).toEqual({ id: talkerP, description: TALKERS_SPECIAL['P']})
+    if (output.length !== 2) {
+      console.error(`Problem parsing input\n${input}}`)
+      console.error(`Output should have length 2 instead of ${output.length}`)
+      console.error(output)
+      expect(output).toHaveLength(2)
+    } else {
+      output.forEach(out => {
+        const parse = NMEASentenceSchema.safeParse(out)
+        if (!parse.success) { console.error(parse.error ) }
+        expect(parse.success).toBeTruthy()
+      })
+      // Known special talker
+      const [outputU, outputP] = [output[0].talker, output[1].talker]
+      // @ts-ignore
+      expect(outputU).toEqual({ id: talkerU, description: TALKERS_SPECIAL['U']})
+      expect(outputP).toEqual({ id: talkerP, description: TALKERS_SPECIAL['P']})
+    }
   })
 
   test('Parsing sentences with unknown talkers', () => {
@@ -224,6 +233,7 @@ describe('Parser', () => {
       'asdfasfaf' + input2 + 'lakjs'
     ].forEach(input => {
       const output = parser.parseData(input)
+      if (output.length !== 1) { console.error(`Problem parsing frame -> ${input}`) }
       expect(output).toHaveLength(1)
     })
   })
@@ -244,6 +254,7 @@ describe('Parser', () => {
       'asdfasfaf' + input2 + 'lakjs'
     ].forEach(input => {
       const output = parser.parseData(input)
+      if (output.length !== 1) { console.error(`Problem parsing frame -> ${input}`) }
       expect(output).toHaveLength(1)
     })
     parser.parseData(halfInput1)
@@ -259,12 +270,17 @@ describe('Parser', () => {
     const input1 = getFakeSentece(generateSentence(aam), 'XXX')
     const input2 = getFakeSentece(generateSentence(gga), 'YYY');
     [input1, input2].forEach(input => {
-      const output = parser.parseData(input)[0]
-      const parsed = NMEAUknownSentenceSchema.safeParse(output)
-      if (!parsed.success) {
-        console.error(parsed.error)
+      const output = parser.parseData(input)
+      if (output.length !== 1) {
+        console.error(`Problem parsing frame -> ${input}`)
+        expect(output).toHaveLength(1)
+      } else {
+        const parsed = NMEAUknownSentenceSchema.safeParse(output[0])
+        if (!parsed.success) {
+          console.error(parsed.error)
+        }
+        expect(parsed.success).toBeTruthy()
       }
-      expect(parsed.success).toBeTruthy()
     })
   })
 })

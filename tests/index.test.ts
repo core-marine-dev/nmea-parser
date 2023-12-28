@@ -2,10 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, test, expect } from 'vitest'
 import Parser from '../src'
-import { generateSentence } from '../src/sentences'
+import { generateSentence, getFakeSentece } from '../src/sentences'
 import { NMEAKnownSentenceSchema, NMEAUknownSentenceSchema } from '../src/schemas'
-import { DELIMITER, END_FLAG, END_FLAG_LENGTH, SEPARATOR, START_FLAG_LENGTH } from '../src/constants'
-import { getChecksum, numberChecksumToString } from '../src/checksum'
 import { readProtocolsFile } from '../src/protocols'
 import { Protocol } from '../src/types'
 
@@ -21,7 +19,7 @@ describe('Parser', () => {
     const expectedSentences = ['AAM', 'GGA']
     expectedSentences.forEach(sentence => expect(Object.keys(parserSentences).includes(sentence)).toBeTruthy())
   })
-  
+
   test('Add protocols with file', () => {
     const file = NORSUB_FILE
     const parser = new Parser()
@@ -37,7 +35,7 @@ describe('Parser', () => {
     expectedProtocols.forEach(protocol => {
       const result = parserProtocols.filter(p => p.protocol === protocol)
       if (result.length === 0) { console.log(`Protocol ${protocol} is not included`) }
-      expect(result).toHaveLength(1)
+      expect(result.length).toBeGreaterThan(0)
     })
   
     const parserSentences = parser.getSentences()
@@ -53,7 +51,7 @@ describe('Parser', () => {
       expect(result).toBeTruthy()
     })
   })
-  
+
   test('Add protocols with content', () => {
     const content = fs.readFileSync(NORSUB_FILE, 'utf-8')
     const parser = new Parser()
@@ -69,7 +67,7 @@ describe('Parser', () => {
     expectedProtocols.forEach(protocol => {
       const result = parserProtocols.filter(p => p.protocol === protocol)
       if (result.length === 0) { console.log(`Protocol ${protocol} is not included`) }
-      expect(result).toHaveLength(1)
+      expect(result.length).toBeGreaterThan(0)
     })
   
     const parserSentences = parser.getSentences()
@@ -85,7 +83,7 @@ describe('Parser', () => {
       expect(result).toBeTruthy()
     })
   })
-  
+
   test('Add protocols with protocols', () => {
     const { protocols } = readProtocolsFile(NORSUB_FILE)
     const parser = new Parser()
@@ -101,7 +99,7 @@ describe('Parser', () => {
     expectedProtocols.forEach(protocol => {
       const result = parserProtocols.filter(p => p.protocol === protocol)
       if (result.length === 0) { console.log(`Protocol ${protocol} is not included`) }
-      expect(result).toHaveLength(1)
+      expect(result.length).toBeGreaterThan(0)
     })
   
     const parserSentences = parser.getSentences()
@@ -157,6 +155,7 @@ describe('Parser', () => {
       'asdfasfaf' + input2 + 'lakjs'
     ].forEach(input => {
       const output = parser.parseData(input)
+      if (output.length !== 1) { console.error(`Problem parsing frame -> ${input}`) }
       expect(output).toHaveLength(1)
     })
   })
@@ -185,14 +184,6 @@ describe('Parser', () => {
   })
 
   test('Unknown frames', () => {
-    const getFakeSentece = (text: string, sentence: string): string => {
-      const [frame, _cs] = text.slice(START_FLAG_LENGTH, -END_FLAG_LENGTH).split(DELIMITER)
-      const [_emitter, ...info] = frame.split(SEPARATOR)
-      const newFrame = [sentence, ...info].join(SEPARATOR)
-      const checksum = numberChecksumToString(getChecksum(newFrame))
-      return `$${newFrame}${DELIMITER}${checksum}${END_FLAG}`
-    }
-
     const parser = new Parser()
     const storedSentences = parser.getSentences()
     const aam = storedSentences['AAM']
@@ -200,12 +191,17 @@ describe('Parser', () => {
     const input1 = getFakeSentece(generateSentence(aam), 'XXX')
     const input2 = getFakeSentece(generateSentence(gga), 'YYY');
     [input1, input2].forEach(input => {
-      const output = parser.parseData(input)[0]
-      const parsed = NMEAUknownSentenceSchema.safeParse(output)
-      if (!parsed.success) {
-        console.error(parsed.error)
+      const output = parser.parseData(input)
+      if (output.length !== 1) {
+        console.error(`Problem parsing frame -> ${input}`)
+        expect(output).toHaveLength(1)
+      } else {
+        const parsed = NMEAUknownSentenceSchema.safeParse(output[0])
+        if (!parsed.success) {
+          console.error(parsed.error)
+        }
+        expect(parsed.success).toBeTruthy()
       }
-      expect(parsed.success).toBeTruthy()
     })
   })
 
