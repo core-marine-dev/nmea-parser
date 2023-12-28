@@ -20,6 +20,8 @@ If the parser knows the NMEA sentences it gives more metadata. Known frames are:
 
   - AAM
   - GGA
+  - HDT
+  - ZDA
 
 </details>
 
@@ -71,7 +73,7 @@ type NMEASentence = {
   // Sentence checksum
   checksum: number
   // Sentence talker
-  talker: null | { id: string, description: string }
+  talker?: null | { id: string, description: string }
 }
 ```
 
@@ -95,7 +97,7 @@ You can enable or disable memory in the parser. Why?
 - You just enters string in slots so a frame could be splitted into string slots
 - With memory the parser remember the last half frame
 - So you can finally parse with the next string input
-****
+
 ## Feeding the parser (adding known sentences)
 
 One of the greatest features of the parser is you can expand with more NMEA-like sentences. Standard or propietary sentences, it doesn't mind.
@@ -163,7 +165,6 @@ protocols:
     version: '3.1'
     standard: true
     sentences:
-      # AAM sentence
       - sentence: AAM
         description: Waypoint Arrival Alarm
         fields:
@@ -185,15 +186,14 @@ protocols:
               V = perpendicular not passed"
           # 3
           - name: arrival_circle_radius
-            type: float
+            type: float32
           # 4
           - name: radius_units
-            type: float64
+            type: string
             units: nautic miles
           # 5
           - name: waypoint_id
             type: string
-      # GGA sentence
       - sentence: GGA
         description: Global Positioning System Fix Data
         fields:
@@ -203,7 +203,7 @@ protocols:
             units: ms
           # 2
           - name: latitude
-            type: float
+            type: string
             units: deg
           # 3
           - name: latitude_direction
@@ -212,7 +212,7 @@ protocols:
               S: South"
           # 4
           - name: longitude
-            type: float
+            type: string
             units: deg
           # 5
           - name: longitude_direction
@@ -233,7 +233,7 @@ protocols:
               8: Simulator Mode"
           # 7
           - name: satellites
-            type: float64
+            type: uint8
           # 8
           - name: hdop
             type: float64
@@ -243,8 +243,8 @@ protocols:
             units: m
             note: "Orthometric height Mean-Sea-Level (MSL reference)"
           # 10
-          - name: altitude_meters
-            type: float64
+          - name: altitude_units
+            type: string
             units: m
           # 11
           - name: geoid_separation
@@ -252,8 +252,8 @@ protocols:
             units: m
             note: "Geoidal Separation: the difference between the WGS-84 earth ellipsoid surface and mean-sea-level (geoid) surface, \"-\" = mean-sea-level surface below WGS-84 ellipsoid surface."
           # 12
-          - name: geoid_separation_meters
-            type: float64
+          - name: geoid_separation_units
+            type: string
             units: m
           # 13
           - name: age_of_differential_gps_data
@@ -262,7 +262,7 @@ protocols:
             note: "Time in seconds since last SC104 Type 1 or 9 update, null field when DGPS is not used300"
           # 14
           - name: reference_station_id
-            type: float64
+            type: uint16
             note: "Reference station ID, range 0000 to 4095. A null field when any reference station ID is selected and no corrections are received. See table below for a description of the field values.\n
 
               0002 CenterPoint or ViewPoint RTX\n
@@ -292,6 +292,45 @@ protocols:
               1020 HP/G2 (GPS)\n
               
               1021 HP/G2 (GPS/GLONASS)"
+      - sentence: HDT
+        description: Heading - True
+        fields:
+          # 1
+          - name: heading
+            type: float32
+            note: "Heading, degrees True"
+          # 2
+          - name: "true"
+            type: string
+            note: "T = True"
+      - sentence: ZDA
+        description: Time & Date - UTC, day, month, year and local time zone
+        fields:
+          # 1
+          - name: utc_time
+            type: string
+            note: "UTC time (hours, minutes, seconds, may have fractional subseconds)"
+          # 2
+          - name: day
+            type: int8
+            note: "Day, 01 to 31"
+          # 3
+          - name: month
+            type: int8
+            note: "Month, 01 to 12"
+          # 4
+          - name: year
+            type: int16
+            note: "Year (4 digits)"
+          # 5
+          - name: local_zone_hours
+            type: int8
+            note: "Local zone description, 00 to +- 13 hours"
+          # 6
+          - name: local_zone_minutes
+            type: int8
+            note: "Local zone minutes description, 00 to 59, apply same sign as local hours"
+
 
   # Propietary GYROCOMPAS1
   - protocol: GYROCOMPAS1
@@ -378,7 +417,20 @@ type Protocol = {
     output = parser.addProtocols({ content: PROTOCOL_OBJECT })
     ```
 
-- Get known sentences or protocols
+- Get known protocols with their sentences
+
+    ```typescript
+    type ProtocolOutput = {
+      protocol: string,
+      version?: string,
+      sentences: string[]
+    }
+
+    // GET protocols
+    const knownProtocols: ProtocolOutput[] = parser.getProtocols()
+    ```
+
+- Get sentence info by id
 
     ```typescript
     type Sentence = {
@@ -397,16 +449,15 @@ type Protocol = {
         units?: string,
         note?: string
       }>,
+      // Optional talker
+      talker?: null | { id: string, description: string }
       // Optional description
       description?: string
     }
 
-    type Sentences = Record<string, Sentence>
-
-    // GET sentences
-    const knownSentences: Sentences = parser.getSentences()
-    // GET protocols
-    const knownProtocols: string[] = parser.getProtocols()
+    // GET sentence
+    const id = 'AAM'
+    const sentenceInfo: null | Sentence = parser.getSentence(id)
     ```
 
 - Get / set memory and / or buffer character length
