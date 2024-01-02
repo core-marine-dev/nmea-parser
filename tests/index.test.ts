@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { describe, test, expect } from 'vitest'
-import Parser from '../src'
+import { NMEAParser as Parser } from '../src'
 import { generateSentence, getFakeSentece } from '../src/sentences'
 import { NMEAKnownSentenceSchema, NMEAUknownSentenceSchema } from '../src/schemas'
 import { readProtocolsFile } from '../src/protocols'
