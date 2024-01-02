@@ -3,6 +3,7 @@
 .idea
 .DS_Store
 docs
+lib
 
 # Logs
 logs
