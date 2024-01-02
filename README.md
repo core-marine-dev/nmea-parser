@@ -34,9 +34,9 @@ If the parser knows the NMEA sentences it gives more metadata. Known frames are:
 ## How to use it
 
 ```typescript
-import Parser from '@coremarine/nmea-parser'
+import { NMEAParser } from '@coremarine/nmea-parser'
 // NMEA parser
-const parser = new Parser()
+const parser = new NMEAParser()
 ```
 
 ### Parse NMEA string data
