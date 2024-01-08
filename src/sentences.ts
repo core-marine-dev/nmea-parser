@@ -135,7 +135,7 @@ export const getValue = (type: FieldType): Data => {
   return getNumberValue(type)
 }
 
-export const generateSentence = (model: StoredSentence): NMEALike => {
+export const generateSentenceFromModel = (model: StoredSentence): NMEALike => {
   let sentence = `$${model.sentence}`
   model.fields.forEach(field => {
     const value = getValue(field.type)
@@ -147,7 +147,7 @@ export const generateSentence = (model: StoredSentence): NMEALike => {
   return sentence
 }
 
-export const getFakeSentece = (text: string, sentence: string): string => {
+export const getFakeSentence = (text: string, sentence: string): string => {
   const [frame, _cs] = text.slice(START_FLAG_LENGTH, -END_FLAG_LENGTH).split(DELIMITER)
   const [_emitter, ...info] = frame.split(SEPARATOR)
   const newFrame = [sentence, ...info].join(SEPARATOR)
