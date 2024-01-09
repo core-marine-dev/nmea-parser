@@ -234,7 +234,7 @@ describe('Parser', () => {
     expect(sentence?.talker?.description).toBe('unknown')
   })
 
-  test('Generate fake sentences', () => {
+  test('Generate fake sentences without talkers', () => {
     const parser = new Parser()
     const sentences = parser.getSentences()
     for (const key in sentences) {
@@ -248,5 +248,32 @@ describe('Parser', () => {
         expect(parsed[0].sentence).toBe(id)
       }
     }
+  })
+
+  test('Generate fake sentences with talkers', () => {
+    const parser = new Parser()
+    const sentences = parser.getSentences()
+    for (const key in sentences) {
+      const talker = 'GP'
+      const sentence = sentences[key].sentence
+      const id = talker + sentence
+      const fakeSentence = parser.getFakeSentenceByID(id)
+      expect(fakeSentence).not.toBeNull()
+      expect(NMEALikeSchema.safeParse(fakeSentence).success).toBeTruthy()
+      if (fakeSentence !== null) {
+        const parsed = parser.parseData(fakeSentence)
+        expect(parsed).toHaveLength(1)
+        expect(parsed[0].sentence).toBe(sentence)
+        expect(parsed[0].talker?.id).toBe(talker)
+      }
+    }
+  })
+
+  test('Generate fake sentences unknown', () => {
+    const parser = new Parser();
+    ['XXX', 'YYY'].forEach(id => {
+      const fakeSentence = parser.getFakeSentenceByID(id)
+      expect(fakeSentence).toBeNull()
+    })
   })
 })
