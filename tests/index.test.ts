@@ -3,7 +3,7 @@ import path from 'node:path'
 import { describe, test, expect } from 'vitest'
 import { NMEAParser as Parser } from '../src'
 import { generateSentenceFromModel, getFakeSentence } from '../src/sentences'
-import { NMEAKnownSentenceSchema, NMEAUknownSentenceSchema } from '../src/schemas'
+import { NMEAKnownSentenceSchema, NMEALikeSchema, NMEAUknownSentenceSchema } from '../src/schemas'
 import { readProtocolsFile } from '../src/protocols'
 import { Protocol } from '../src/types'
 
@@ -232,5 +232,21 @@ describe('Parser', () => {
     expect(sentence?.protocol.standard).toBeTruthy()
     expect(sentence?.talker?.id).toBe('XX')
     expect(sentence?.talker?.description).toBe('unknown')
+  })
+
+  test('Generate fake sentences', () => {
+    const parser = new Parser()
+    const sentences = parser.getSentences()
+    for (const key in sentences) {
+      const id = sentences[key].sentence
+      const fakeSentence = parser.getFakeSentenceByID(id)
+      expect(fakeSentence).not.toBeNull()
+      expect(NMEALikeSchema.safeParse(fakeSentence).success).toBeTruthy()
+      if (fakeSentence !== null) {
+        const parsed = parser.parseData(fakeSentence)
+        expect(parsed).toHaveLength(1)
+        expect(parsed[0].sentence).toBe(id)
+      }
+    }
   })
 })

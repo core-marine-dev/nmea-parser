@@ -2,9 +2,9 @@ import { readdirSync } from 'node:fs'
 import Path from 'node:path'
 import { END_FLAG, END_FLAG_LENGTH, MAX_CHARACTERS, NMEA_ID_LENGTH, START_FLAG, START_FLAG_LENGTH } from "./constants";
 import { BooleanSchema, NMEALikeSchema, NaturalSchema, ProtocolsInputSchema, StringSchema } from "./schemas";
-import { Data, FieldType, FieldUnknown, NMEAKnownSentence, NMEAParser, NMEAPreParsed, NMEASentence, NMEAUknownSentence, ParserSentences, ProtocolOutput, ProtocolsFile, ProtocolsInput, Sentence, StoredSentence, StoredSentences } from "./types";
+import { Data, FieldType, FieldUnknown, NMEAKnownSentence, NMEALike, NMEAParser, NMEAPreParsed, NMEASentence, NMEAUknownSentence, ParserSentences, ProtocolOutput, ProtocolsFile, ProtocolsInput, Sentence, StoredSentence, StoredSentences } from "./types";
 import { getSentencesByProtocol, getStoreSentences, readProtocolsFile, readProtocolsString } from './protocols';
-import { getNMEAUnparsedSentence } from './sentences';
+import { generateSentenceFromModel, getNMEAUnparsedSentence } from './sentences';
 import { getTalker } from './utils';
 
 
@@ -77,6 +77,20 @@ export class Parser implements NMEAParser {
   getSentences(): ParserSentences {
 
     return Object.fromEntries(this._sentences.entries())
+  }
+
+  getFakeSentenceByID(id: string): NMEALike | null{
+    if (!StringSchema.safeParse(id).success || id.length < NMEA_ID_LENGTH) { return null }
+    const model = this._sentences.get(id) ?? null
+    if (model === null) { return null }
+    return generateSentenceFromModel(model)
+  }
+
+  parseData(text: string): NMEASentence[] {
+    const parsed = StringSchema.safeParse(text)
+    if (!parsed.success) return []
+    const data = (this.memory) ? this._buffer + parsed.data : parsed.data
+    return this.getFrames(data)
   }
 
   private getField(value: string, type: FieldType): Data {
@@ -214,10 +228,4 @@ export class Parser implements NMEAParser {
     return frames
   }
 
-  parseData(text: string): NMEASentence[] {
-    const parsed = StringSchema.safeParse(text)
-    if (!parsed.success) return []
-    const data = (this.memory) ? this._buffer + parsed.data : parsed.data
-    return this.getFrames(data)
-  }
 }

@@ -45,4 +45,5 @@ export interface NMEAParser {
   addProtocols(protocols: ProtocolsInput): void,
   getProtocols(): ProtocolOutput[],
   getSentence(id: string): Sentence,
+  getFakeSentenceByID(id: string): NMEALike | null
 }
