@@ -261,6 +261,8 @@ describe('Parser', () => {
       expect(fakeSentence).not.toBeNull()
       expect(NMEALikeSchema.safeParse(fakeSentence).success).toBeTruthy()
       if (fakeSentence !== null) {
+        const starts = fakeSentence.startsWith(talker, 1)
+        expect(starts).toBeTruthy()
         const parsed = parser.parseData(fakeSentence)
         expect(parsed).toHaveLength(1)
         expect(parsed[0].sentence).toBe(sentence)
