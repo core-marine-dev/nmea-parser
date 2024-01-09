@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { generateSentence, getNMEAUnparsedSentence, getNumberValue, getUnknownSentence, getValue } from '../src/sentences'
+import { generateSentenceFromModel, getNMEAUnparsedSentence, getNumberValue, getUnknownSentence, getValue } from '../src/sentences'
 import { FieldType, NMEAPreParsed, NMEAUnparsedSentence, StoredSentence } from '../src/types'
 import { Int16Schema, Int32Schema, Int8Schema, IntegerSchema, NMEALikeSchema, NMEAPreParsedSentenceSchema, NaturalSchema, Uint16Schema, Uint32Schema, Uint8Schema } from '../src/schemas'
 import { CHECKSUM_LENGTH, DELIMITER_LENGTH, END_FLAG_LENGTH, SEPARATOR } from '../src/constants'
@@ -134,7 +134,7 @@ describe('getValue', () => {
   })
 })
 
-describe('generateSentence', () => {
+describe('generateSentenceFromModel', () => {
   const testSentence: StoredSentence = {
     sentence: 'TEST',
     protocol: {
@@ -158,7 +158,7 @@ describe('generateSentence', () => {
     description: 'This is just an invented sentence for testing'
   }
   test('Happy path', () => {
-    const expected = generateSentence(testSentence)
+    const expected = generateSentenceFromModel(testSentence)
     const parsed = NMEALikeSchema.parse(expected)
     expect(parsed).toBe(expected)
 
@@ -218,7 +218,7 @@ describe('unknown sentence', () => {
     description: 'This is just an invented sentence for testing'
   }
   test('getUnknownSentence', () => {
-    const text = generateSentence(testSentence)
+    const text = generateSentenceFromModel(testSentence)
     const unparsedSentence: NMEAUnparsedSentence = getNMEAUnparsedSentence(text) as NMEAUnparsedSentence
     const preparsedFrame = { timestamp: Date.now(), ...unparsedSentence }
     const input: NMEAPreParsed = NMEAPreParsedSentenceSchema.parse(preparsedFrame)

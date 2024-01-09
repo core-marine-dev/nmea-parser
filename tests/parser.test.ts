@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, test, expect } from 'vitest'
 import { Parser } from '../src/parser'
-import { generateSentence, getFakeSentece } from '../src/sentences'
+import { generateSentenceFromModel, getFakeSentence } from '../src/sentences'
 import { NMEAKnownSentenceSchema, NMEASentenceSchema, NMEAUknownSentenceSchema } from '../src/schemas'
 import { TALKERS, TALKERS_SPECIAL } from '../src/constants'
 import { readProtocolsFile } from '../src/protocols'
@@ -130,7 +130,7 @@ describe('Parser', () => {
     parser.addProtocols({ file: NORSUB_FILE })
     const storedSentences = parser.getSentences()
     Object.values(storedSentences).forEach(storedSentence => {
-      const input = generateSentence(storedSentence)
+      const input = generateSentenceFromModel(storedSentence)
       expect(input).toBeTypeOf('string')
       const output = parser.parseData(input)[0]
       const parsed = NMEAKnownSentenceSchema.safeParse(output)
@@ -146,8 +146,8 @@ describe('Parser', () => {
     const storedSentences = parser.getSentences()
     const aam = storedSentences['AAM']
     const gga = storedSentences['GGA']
-    const inputAAM = getFakeSentece(generateSentence(aam), 'GPAAM')
-    const inputGGA = getFakeSentece(generateSentence(gga), 'GAGGA');
+    const inputAAM = getFakeSentence(generateSentenceFromModel(aam), 'GPAAM')
+    const inputGGA = getFakeSentence(generateSentenceFromModel(gga), 'GAGGA');
     const input = inputAAM + inputGGA
     const output = parser.parseData(input);
     expect(output).toHaveLength(2)
@@ -171,8 +171,8 @@ describe('Parser', () => {
     const talkerP = 'PASDF'
     const aam = storedSentences['AAM']
     const gga = storedSentences['GGA']
-    const inputAAM = getFakeSentece(generateSentence(aam), talkerU + 'AAM')
-    const inputGGA = getFakeSentece(generateSentence(gga), talkerP + 'GGA');
+    const inputAAM = getFakeSentence(generateSentenceFromModel(aam), talkerU + 'AAM')
+    const inputGGA = getFakeSentence(generateSentenceFromModel(gga), talkerP + 'GGA');
     const input = inputAAM + inputGGA
     const output = parser.parseData(input);
     if (output.length !== 2) {
@@ -201,8 +201,8 @@ describe('Parser', () => {
     const talkerUU = 'UU'
     const aam = storedSentences['AAM']
     const gga = storedSentences['GGA']
-    const inputAAM = getFakeSentece(generateSentence(aam), talkerXX + 'AAM')
-    const inputGGA = getFakeSentece(generateSentence(gga), talkerUU + 'GGA');
+    const inputAAM = getFakeSentence(generateSentenceFromModel(aam), talkerXX + 'AAM')
+    const inputGGA = getFakeSentence(generateSentenceFromModel(gga), talkerUU + 'GGA');
     const input = inputAAM + inputGGA
     const output = parser.parseData(input);
     expect(output).toHaveLength(2)
@@ -221,10 +221,10 @@ describe('Parser', () => {
   test('Uncompleted frames WITHOUT memory', () => {
     const parser = new Parser()
     const storedSentences = parser.getSentences()
-    const input1 = generateSentence(storedSentences['AAM'])
+    const input1 = generateSentenceFromModel(storedSentences['AAM'])
     const halfInput1 = input1.slice(0, 10)
     const halfInput2 = input1.slice(10)
-    const input2 = generateSentence(storedSentences['GGA']);
+    const input2 = generateSentenceFromModel(storedSentences['GGA']);
     [
       halfInput1 + input2,
       halfInput1 + halfInput1+ input2,
@@ -242,10 +242,10 @@ describe('Parser', () => {
     const parser = new Parser()
     parser.memory = true
     const storedSentences = parser.getSentences()
-    const input1 = generateSentence(storedSentences['AAM'])
+    const input1 = generateSentenceFromModel(storedSentences['AAM'])
     const halfInput1 = input1.slice(0, 10)
     const halfInput2 = input1.slice(10)
-    const input2 = generateSentence(storedSentences['GGA']);
+    const input2 = generateSentenceFromModel(storedSentences['GGA']);
     [
       halfInput1 + input2,
       halfInput1 + halfInput1+ input2,
@@ -267,8 +267,8 @@ describe('Parser', () => {
     const storedSentences = parser.getSentences()
     const aam = storedSentences['AAM']
     const gga = storedSentences['GGA']
-    const input1 = getFakeSentece(generateSentence(aam), 'XXX')
-    const input2 = getFakeSentece(generateSentence(gga), 'YYY');
+    const input1 = getFakeSentence(generateSentenceFromModel(aam), 'XXX')
+    const input2 = getFakeSentence(generateSentenceFromModel(gga), 'YYY');
     [input1, input2].forEach(input => {
       const output = parser.parseData(input)
       if (output.length !== 1) {

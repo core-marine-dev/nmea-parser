@@ -2,8 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, test, expect } from 'vitest'
 import { NMEAParser as Parser } from '../src'
-import { generateSentence, getFakeSentece } from '../src/sentences'
-import { NMEAKnownSentenceSchema, NMEAUknownSentenceSchema } from '../src/schemas'
+import { generateSentenceFromModel, getFakeSentence } from '../src/sentences'
+import { NMEAKnownSentenceSchema, NMEALikeSchema, NMEAUknownSentenceSchema } from '../src/schemas'
 import { readProtocolsFile } from '../src/protocols'
 import { Protocol } from '../src/types'
 
@@ -129,7 +129,7 @@ describe('Parser', () => {
     parser.addProtocols({ file: NORSUB_FILE })
     const storedSentences = parser.getSentences()
     Object.values(storedSentences).forEach(storedSentence => {
-      const input = generateSentence(storedSentence)
+      const input = generateSentenceFromModel(storedSentence)
       expect(input).toBeTypeOf('string')
       const output = parser.parseData(input)[0]
       const parsed = NMEAKnownSentenceSchema.safeParse(output)
@@ -143,10 +143,10 @@ describe('Parser', () => {
   test('Uncompleted frames WITHOUT memory', () => {
     const parser = new Parser()
     const storedSentences = parser.getSentences()
-    const input1 = generateSentence(storedSentences['AAM'])
+    const input1 = generateSentenceFromModel(storedSentences['AAM'])
     const halfInput1 = input1.slice(0, 10)
     const halfInput2 = input1.slice(10)
-    const input2 = generateSentence(storedSentences['GGA']);
+    const input2 = generateSentenceFromModel(storedSentences['GGA']);
     [
       halfInput1 + input2,
       halfInput1 + halfInput1+ input2,
@@ -164,10 +164,10 @@ describe('Parser', () => {
     const parser = new Parser()
     parser.memory = true
     const storedSentences = parser.getSentences()
-    const input1 = generateSentence(storedSentences['AAM'])
+    const input1 = generateSentenceFromModel(storedSentences['AAM'])
     const halfInput1 = input1.slice(0, 10)
     const halfInput2 = input1.slice(10)
-    const input2 = generateSentence(storedSentences['GGA']);
+    const input2 = generateSentenceFromModel(storedSentences['GGA']);
     [
       halfInput1 + input2,
       halfInput1 + halfInput1+ input2,
@@ -188,8 +188,8 @@ describe('Parser', () => {
     const storedSentences = parser.getSentences()
     const aam = storedSentences['AAM']
     const gga = storedSentences['GGA']
-    const input1 = getFakeSentece(generateSentence(aam), 'XXX')
-    const input2 = getFakeSentece(generateSentence(gga), 'YYY');
+    const input1 = getFakeSentence(generateSentenceFromModel(aam), 'XXX')
+    const input2 = getFakeSentence(generateSentenceFromModel(gga), 'YYY');
     [input1, input2].forEach(input => {
       const output = parser.parseData(input)
       if (output.length !== 1) {
@@ -232,5 +232,21 @@ describe('Parser', () => {
     expect(sentence?.protocol.standard).toBeTruthy()
     expect(sentence?.talker?.id).toBe('XX')
     expect(sentence?.talker?.description).toBe('unknown')
+  })
+
+  test('Generate fake sentences', () => {
+    const parser = new Parser()
+    const sentences = parser.getSentences()
+    for (const key in sentences) {
+      const id = sentences[key].sentence
+      const fakeSentence = parser.getFakeSentenceByID(id)
+      expect(fakeSentence).not.toBeNull()
+      expect(NMEALikeSchema.safeParse(fakeSentence).success).toBeTruthy()
+      if (fakeSentence !== null) {
+        const parsed = parser.parseData(fakeSentence)
+        expect(parsed).toHaveLength(1)
+        expect(parsed[0].sentence).toBe(id)
+      }
+    }
   })
 })

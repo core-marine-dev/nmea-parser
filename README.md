@@ -102,6 +102,42 @@ You can enable or disable memory in the parser. Why?
 - With memory the parser remember the last half frame
 - So you can finally parse with the next string input
 
+### Generate fake sentences
+
+It can be asked to the parser if a sentence is supported or known with  the ID of the sentence and the method `getSentence()`.
+If the sentence is supported, parser can generate a fake sentence which is right in terms of NMEA-like requirements but just contains garbage.
+To get that is with method `getFakeSentenceByID()`. If the sentence it is not supported, it will returns `null`.
+
+```typescript
+type Sentence = {
+  // ID of the sentence
+  sentence: string,
+  // Protocol info
+  protocol: {
+    name: string,
+    standard: boolean,
+    version?: string
+  },
+  // Ordered fields with its info
+  fields: Array<{
+    name: string,
+    type: 'string' | 'boolean' | 'uint8' | 'uint16' | 'uint32' | 'int8' | 'int16' | 'int32' | 'float32' | 'float64',
+    units?: string,
+    note?: string
+  }>,
+  // Optional talker
+  talker?: null | { id: string, description: string }
+  // Optional description
+  description?: string
+}
+
+// GET sentence info
+const id = 'AAM'
+const sentenceInfo: null | Sentence = parser.getSentence(id)
+// GET fake sentence
+const fakeSentence: string | null = parser.getFakeSentenceByID(id)
+```
+
 ## Feeding the parser (adding known sentences)
 
 One of the greatest features of the parser is you can expand with more NMEA-like sentences. Standard or propietary sentences, it doesn't mind.
@@ -464,6 +500,14 @@ type Protocol = {
     const sentenceInfo: null | Sentence = parser.getSentence(id)
     ```
 
+- Get fake NMEA-like sentence by id
+
+    ```typescript
+    const id: string = 'AAM'
+    // GET fake sentence
+    const fakeSentence: string | null = parser.getFakeSentenceByID(id)
+    ```
+
 - Get / set memory and / or buffer character length
 
     ```typescript
@@ -481,6 +525,6 @@ type Protocol = {
 
 `bufferLimit` is set to `1024` characters which is more than enough to store an incompleted frame.
 
-> NMEA standard fix the max lenght of a frame to 82 characters (flags included)
+> NMEA standard fix the max length of a frame to 82 characters (flags included)
 
 It is not recommended you change its value if you don't understand well the NMEA protocol pr how it works.
