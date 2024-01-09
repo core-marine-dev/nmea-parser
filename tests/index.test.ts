@@ -268,4 +268,12 @@ describe('Parser', () => {
       }
     }
   })
+
+  test('Generate fake sentences unknown', () => {
+    const parser = new Parser();
+    ['XXX', 'YYY'].forEach(id => {
+      const fakeSentence = parser.getFakeSentenceByID(id)
+      expect(fakeSentence).toBeNull()
+    })
+  })
 })

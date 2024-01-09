@@ -4,7 +4,7 @@ import { END_FLAG, END_FLAG_LENGTH, MAX_CHARACTERS, NMEA_ID_LENGTH, START_FLAG, 
 import { BooleanSchema, NMEALikeSchema, NaturalSchema, ProtocolsInputSchema, StringSchema } from "./schemas";
 import { Data, FieldType, FieldUnknown, NMEAKnownSentence, NMEALike, NMEAParser, NMEAPreParsed, NMEASentence, NMEAUknownSentence, ParserSentences, ProtocolOutput, ProtocolsFile, ProtocolsInput, Sentence, StoredSentence, StoredSentences } from "./types";
 import { getSentencesByProtocol, getStoreSentences, readProtocolsFile, readProtocolsString } from './protocols';
-import { generateSentenceFromModel, getNMEAUnparsedSentence } from './sentences';
+import { generateSentenceFromModel, getFakeSentence, getNMEAUnparsedSentence } from './sentences';
 import { getTalker } from './utils';
 
 
@@ -75,15 +75,18 @@ export class Parser implements NMEAParser {
   }
 
   getSentences(): ParserSentences {
-
     return Object.fromEntries(this._sentences.entries())
   }
 
   getFakeSentenceByID(id: string): NMEALike | null{
     if (!StringSchema.safeParse(id).success || id.length < NMEA_ID_LENGTH) { return null }
-    const model = this._sentences.get(id) ?? null
-    if (model === null) { return null }
-    return generateSentenceFromModel(model)
+    const aux = this._sentences.get(id) ?? null
+    if (aux !== null) { return generateSentenceFromModel(aux) }
+    const [_, sent] = [id.slice(0, id.length - NMEA_ID_LENGTH), id.slice(- NMEA_ID_LENGTH)]
+    const sentence = this._sentences.get(sent)
+    if (sentence === undefined) { return null }
+    const mockSentence = generateSentenceFromModel(sentence)
+    return getFakeSentence(mockSentence, id)
   }
 
   parseData(text: string): NMEASentence[] {
